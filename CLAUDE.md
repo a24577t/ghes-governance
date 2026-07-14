@@ -1,5 +1,9 @@
 # ghes-governance
 
+## Git workflow
+
+`main` is protected — never commit to, push to, or locally merge into `main`. Every change goes on a feature branch and lands in `main` only through a pull request.
+
 ## Agent skills
 
 ### Issue tracker
