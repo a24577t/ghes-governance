@@ -24,11 +24,11 @@ Phase 2 – Vertical Slice Specification
 ## Versions
 
 - Architecture Version: 1.0.0
-- Repository Version: v0.1.0 recommended (annotated tag after the baseline PR merges)
+- Repository Version: v0.1.1 recommended (annotated tag after the baseline PR merges)
 
 ## Current Objective
 
-Land the baseline PR to `main` (discharges the phase-gate conditions), then create the specification for Vertical Slice 1.
+Produce and approve the specification for Vertical Slice 1.
 
 ## Current Vertical Slice
 
