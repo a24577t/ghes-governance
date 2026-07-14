@@ -7,5 +7,6 @@ Periodic reconciliation is authoritative; events are accelerators
 Governance is additive to platform ownership
 One governance engine, multiple evaluation strategies
 Evaluation Role constrains execution authority
-Restrictions may be inferred; authority may not
+Restrictions may be applied conservatively under uncertainty; authority may never be inferred
 Compliance and Coverage are independent dimensions
+A governance tool must not degrade the platform it protects

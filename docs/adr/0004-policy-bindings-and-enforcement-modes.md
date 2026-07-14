@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 ---
 
 # Policy bindings carry enforcement mode; closed three-mode model
@@ -7,16 +7,18 @@ status: proposed
 Enforcement mode is a closed semantic model owned by the core engine, and it attaches to a versioned **policy binding** — not to the policy globally:
 
 ```text
-Policy Version + Scope Expression + Enforcement Mode + Effective Period = Policy Binding
+Policy Version + Scope Expression + Enforcement Mode + Evaluation Role + Effective Period = Policy Binding
 ```
 
-A binding identifies at least: policy identifier and immutable version, scope expression, enforcement mode, effective start time, optional effective end time, optional rollout ring or rollout identifier, binding version, and provenance of the approved change. The same policy version may therefore operate simultaneously in different modes across different scopes (e.g. `Enforce` in a synthetic canary scope, `Plan` in a pilot scope, `Observe` across the wider inventory). Policies are never cloned to represent rollout stages.
+A binding identifies at least: policy identifier and immutable version, scope expression, enforcement mode, evaluation role (authoritative or shadow, ADR-0005), effective start time, optional effective end time, optional rollout ring or rollout identifier, binding version, and provenance of the approved change. The same policy version may therefore operate simultaneously in different modes across different scopes (e.g. `Enforce` in a synthetic canary scope, `Plan` in a pilot scope, `Observe` across the wider inventory). Policies are never cloned to represent rollout stages.
 
 ## The closed mode set
 
 - **Observe** — resolve applicability, evaluate compliance, produce findings and evidence. No target changes; no executable remediation plan.
 - **Plan** — all Observe behavior, plus an explainable remediation plan identifying proposed operations, prerequisites, expected impact, risk, verification steps, and rollback requirements. No target changes.
-- **Enforce** — evaluation and planning, plus permitting an approved execution process to apply the remediation, verifying the resulting state, and recording execution, verification, failure, and rollback evidence.
+- **Enforce** — evaluation and planning, plus permitting an approved remediation process (ADR-0011) to apply the remediation, verifying the resulting state, and recording execution, verification, failure, and rollback evidence.
+
+**Enforcement Mode never determines authority.** Mode influences behavior only after an authoritative binding has been selected; authority is declared through the Evaluation Role and never inferred from mode (ADR-0005).
 
 Notification is **not** an enforcement mode. Notifications are configurable reporting/workflow outputs that may be produced from any mode (reports, PR comments, GitHub issues, email, messaging platforms, change-management systems), keeping enforcement semantics stable while notification mechanisms vary by deployment.
 
@@ -36,7 +38,7 @@ In `Observe` relief artifacts distinguish accepted risk from unresolved findings
 
 The first vertical slice implements `Observe` and `Plan` only — a versioned policy, a scope, a policy binding, Observe evaluation, Plan output, and evidence containing the active mode. `Enforce` is represented in the model but performs no write operations.
 
-## Open questions (updated during consolidation)
+## Subsequent refinements
 
 - Overlapping-binding precedence — **resolved by ADR-0005**: explicit authoritative/shadow evaluation roles, no inferred precedence, ambiguity fails loud.
 - Clock uncertainty — largely resolved by ADR-0005's fixed per-execution evaluation timestamp and half-open effective periods; distributed clock-skew handling remains deferred until execution is distributed (executions stay serialized per ADR-0010).

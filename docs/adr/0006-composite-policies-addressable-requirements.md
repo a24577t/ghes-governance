@@ -1,14 +1,14 @@
 ---
-status: proposed
+status: accepted
 ---
 
 # Composite policies with individually addressable requirements
 
-A policy is a logical grouping of related governance requirements: a stable policy identifier, a policy version, policy-level purpose and descriptive metadata, and one or more individually addressable requirements. The policy is not the smallest evaluation, finding, or relief unit. Each requirement carries a stable requirement identifier, a human-readable name and description, an evaluation definition, an evidence definition, optional remediation guidance, and optional compatibility prerequisites.
+A policy is a logical grouping of related governance requirements: a stable policy identifier, a policy version, policy-level purpose and descriptive metadata, and one or more individually addressable requirements. The policy is not the smallest evaluation, finding, or relief unit. Each requirement carries a stable requirement identifier, a human-readable name and description, a declared evaluation strategy, an evaluation definition — interpreted by, and taking the form required by, the selected Evaluation Strategy (ADR-0012) — an evidence definition, optional remediation guidance, and optional compatibility prerequisites.
 
 ## Stable requirement identity
 
-Requirement identifiers remain stable across policy versions while the requirement retains the same meaning. An identifier is never reused for a materially different control; when a requirement's meaning changes materially it receives a new identifier rather than a redefinition under the old one. This lets shadow comparison (ADR-0005) report per requirement — unchanged, modified, newly introduced, removed, changed evaluation result — instead of relying on the overall policy outcome.
+Requirement identifiers are **immutable**; descriptive metadata (name, description, remediation guidance) may evolve without changing identity, provided the requirement's meaning is unchanged. An identifier is never reused for a materially different control; when a requirement's meaning changes materially it receives a new identifier rather than a redefinition under the old one. This lets shadow comparison (ADR-0005) report per requirement — unchanged, modified, newly introduced, removed, changed evaluation result — instead of relying on the overall policy outcome.
 
 ## Unit of evaluation and finding
 
@@ -24,7 +24,7 @@ Requirement results separate technical evaluation from governance interpretation
   - `Excepted` = technically unmet but reinterpreted by an active Governance Exception (`Technical: NonCompliant / Interpretation: Exception`). Both facts remain visible in evidence; never ordinary compliance.
   - `Excluded` = no technical evaluation occurred (`Technical: NotEvaluated / Interpretation: Exclusion`).
 
-The policy-level outcome is a deterministic, engine-owned aggregation over interpreted Requirement Outcomes:
+The policy-level outcome is derived **solely** by the deterministic, engine-owned aggregation over interpreted Requirement Outcomes — no other mechanism (policy authoring, providers, strategies, reporting) may compute or override it:
 
 1. any requirement `NonCompliant` → policy `NonCompliant` — an exception on one requirement never conceals another requirement's unresolved noncompliance;
 2. otherwise any `Unknown` → policy `Unknown`;
@@ -39,7 +39,7 @@ Applicability may vary within an applicable policy (repository characteristics, 
 
 ## Governance-relief target
 
-Relief artifacts normally target (policy identifier, requirement identifier, scope or repository target). Relief for one requirement never covers other requirements in the same policy. Whole-policy relief is supported only as an explicit, highly visible form that enumerates or clearly declares that all requirements are included — never the default interpretation of a missing requirement identifier. Relief changes governance interpretation; it does not rewrite the underlying technical result.
+Relief artifacts normally target (policy identifier, requirement identifier, scope or repository target). Relief for one requirement never covers other requirements in the same policy. Whole-policy relief is supported only as an explicit, highly visible form that enumerates or clearly declares that all requirements are included — never the default interpretation of a missing requirement identifier. **Relief changes governance interpretation, never the technical outcome** — a recurring platform principle (ADR-0008): Technical Outcomes are never altered by governance artifacts.
 
 ## Future control catalog
 

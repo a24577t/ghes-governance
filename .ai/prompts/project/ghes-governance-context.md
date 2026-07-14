@@ -145,8 +145,9 @@ Preserve the following principles unless a contradiction is demonstrated.
 * Periodic reconciliation is authoritative
 * Event-driven processing is acceleration only
 * Evaluation Role constrains execution authority
-* Restrictions may be inferred
+* Restrictions may be applied conservatively under uncertainty
 * Authority may never be inferred
+* A governance tool must not degrade the platform it protects
 
 ---
 

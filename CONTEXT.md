@@ -58,7 +58,16 @@ The prospective, never-executable plan produced by a Shadow Binding in Plan mode
 _Avoid_: calling shadow output a "plan" without qualification
 
 **Plan Approval**:
-The governed, immutable authorization to apply one Remediation Plan, bound to its exact content hash. Any material change to the plan invalidates the approval; Enforce mode alone never substitutes for it.
+A separate immutable governed artifact authorizing one Remediation Plan, referencing its exact identifier and content hash and recording approving provenance, approval time, applicable constraints, and validity. It never modifies the plan and may only narrow its executable scope and limits — never authorize anything the plan and upstream governance do not already permit; any material change to the plan invalidates it; Enforce mode alone never substitutes for it.
+
+**Approval Revocation**:
+An append-only record withdrawing a Plan Approval through the governed desired-state process. The engine confirms approval remains valid, unrevoked, and unsuspended immediately before execution.
+
+**Emergency Suspension**:
+An authenticated, append-only, evidenced action that removes or pauses write authority through an explicitly defined path faster than the governed PR process, reconciled into the Governance Repository afterward. It can only reduce authority — never grant it or alter a plan. The concrete path is a deferred architectural decision; the POC removes authority via the governed process.
+
+**Remediation Semantics Version**:
+The version of the engine-owned remediation interpretation recorded in every Remediation Plan. A change to that interpretation invalidates approval unless compatibility is explicitly established.
 
 **Standing Remediation Authority**:
 An explicit desired-state grant letting a narrowly scoped, pre-approved remediation class execute without per-plan approval. Never inferred from Enforce mode; never available to irreversible, high-impact, or Unknown-reversibility operations.
@@ -66,8 +75,11 @@ An explicit desired-state grant letting a narrowly scoped, pre-approved remediat
 **Reversibility Class**:
 The closed per-operation set — Reversible, PartiallyReversible, Irreversible, Unknown — declared in every Remediation Plan. Unknown is treated conservatively and never receives standing authority.
 
+**Execution Constraint Set**:
+The intersection of all applicable execution constraints — budgets and eligibility filters alike — from engine safety configuration, environment, binding, plan, approval, and standing authority. A source can only narrow execution, never broaden it; for numeric limits the most restrictive value wins.
+
 **Change Budget**:
-The hard safety boundary limiting write activity of an enforcement Execution (repositories, organizations, operations, irreversible operations, time, failures). The most restrictive applicable limit wins; exhaustion halts writes and is fully evidenced.
+The hard numeric safety boundary within the Execution Constraint Set limiting write activity of an enforcement Execution (repositories, organizations, operations, irreversible operations, time, failures). Exhaustion halts writes and is fully evidenced.
 
 **Evaluation Timestamp**:
 The single authoritative timestamp fixed at Execution start, used for binding activation, scope evaluation, relief validity, applicability, compliance interpretation, and planning eligibility. Effective periods are half-open: start inclusive, end exclusive.
@@ -111,7 +123,7 @@ The record of every discovered repository, entered unconditionally at discovery 
 Determining whether a repository falls within a Scope Expression, using deterministic attributes. Evaluation begins only after successful scope resolution; enforcement depends on successful evaluation.
 
 **Attribute Provider**:
-An engine-executed, versioned capability that supplies repository attributes to Scope Resolution from one source. Providers enrich scope evaluation but cannot redefine its semantics or outcomes.
+An engine-executed, versioned capability that supplies repository attributes to Scope Resolution from one source. Providers supply normalized facts and never evaluate policy; they cannot redefine scope semantics or outcomes.
 _Avoid_: scope resolver, attribute source
 
 **Applicability Outcome**:
@@ -125,14 +137,20 @@ The closed result set of an attribute lookup: Value Present, Value Absent, or Ca
 **Governance Repository**:
 The repository holding Desired State; the trusted policy source. Content is approved when it has completed this repository's governance process (currently a merged Pull Request into a protected branch).
 
+**Approved Artifact**:
+An immutable, commit-identified version of any governed desired-state artifact that has completed the Governance Repository's governance process. The only form of governed content the engine consumes.
+
 **Approved Policy Version**:
-An immutable, commit-identified version of a Policy that has completed the Governance Repository's governance process. The only form of policy the engine consumes.
+The policy-specific case of an Approved Artifact: an immutable, commit-identified version of a Policy that has completed the governance process.
+
+**Trusted Computing Base**:
+The set of components and artifacts whose compromise defeats governance guarantees: the Governance Repository and its protection model, Approved Artifacts, the engine release and its owned capabilities (strategies, providers, capability matrix), and the evidence store's integrity mechanisms.
 
 **Execution**:
 A single identifiable run of the governance engine that evaluates a declared Evaluation Scope and produces Evidence.
 
 **Evaluation Scope**:
-The explicitly declared target set of an Execution — Enterprise, Organization, Repository, Policy, or Rollout Ring. Part of execution identity; authoritative results supersede prior results only within it.
+The explicitly declared target set of an Execution — Enterprise, Organization, Repository, Policy, or Rollout Ring. Part of execution identity; authoritative results supersede prior results per (repository, policy, requirement) tuple, and only within it. Two scopes overlap when they could select at least one common tuple at the same evaluation time; overlapping executions never run concurrently.
 
 **Execution Status**:
 The closed execution-level completeness result recorded in Evidence: Complete, CompleteWithGaps, or Failed, with accounting of discovered, evaluated, and Unknown counts.
@@ -175,11 +193,15 @@ The versioned, trusted description of which capabilities each validated GHES ver
 **NotApplicable Reason**:
 The closed category carried by every NotApplicable requirement: RepositoryCharacteristic, PolicyPrecondition, or PlatformCapabilityUnavailable.
 
-**Coverage Outcome**:
-The closed result describing whether intended controls are actually applied — Covered, PartiallyCovered, CapabilityGap, GovernanceExclusion, or Unknown — reported independently of compliance and never flattened into it. Detailed coverage reasons remain available beneath the aggregate.
+**Coverage State**:
+The closed policy-level result describing how complete the intended control set is — Covered, PartiallyCovered, or Unknown — derived solely by engine-owned aggregation and reported independently of compliance. Uncertainty never counts as coverage.
+_Avoid_: coverage outcome (a single flattened enum)
+
+**Coverage Reason**:
+The closed per-requirement explanation of incomplete coverage: CapabilityGap, GovernanceExclusion, or Unknown. Reasons and per-category counts remain available beneath the aggregate Coverage State.
 
 **Capability Gap**:
-A distinct governance finding: an intended control cannot be applied because the validated GHES version lacks the required capability. Compliance may be green while coverage shows the gap.
+A Coverage Reason and distinct governance finding: an intended control cannot be applied because the validated GHES version lacks the required capability. Compliance may be green while coverage shows the gap.
 
 ### Findings
 

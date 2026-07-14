@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 ---
 
 # Three data classes: authoritative evidence, operational logs, derived reports
@@ -8,9 +8,9 @@ Audit readiness does not mean unlimited retention of every log and intermediate 
 
 ## Data classes
 
-- **Authoritative Evidence** — append-only, authoritative; the information required to explain, reproduce, or audit a governance decision: execution manifest, engine version, policy and binding versions, evaluation timestamp, repository identifier, scope-resolution inputs and outcomes, observed values used by each requirement, requirement/policy/coverage outcomes, accepted exceptions or exclusions, proposed or executed changes, verification results, content hashes and execution digest.
+- **Authoritative Evidence** — append-only, authoritative; the information required to explain, reproduce, or audit a governance decision: execution manifest, engine version, policy and binding versions, evaluation timestamp, repository identifier, scope-resolution inputs and outcomes, observed values used by each requirement, requirement/policy/coverage outcomes, accepted exceptions or exclusions, proposed or executed changes, verification results, content hashes and execution digest. **Published evidence is immutable**: corrections are new evidence items referencing the original — never edits in place.
 - **Operational Logs** — engine operation and troubleshooting (startup/shutdown, API requests and status, retries, timing, parsing diagnostics, provider errors, debug traces). Never authoritative governance evidence; may have shorter retention.
-- **Derived Reports** — human- or machine-readable summaries generated from evidence (compliance dashboards, coverage summaries, exception reports, rollout reports, shadow comparisons). Regenerable and never authoritative; every report references the execution manifests it derives from.
+- **Derived Reports** — human- or machine-readable summaries generated from evidence (compliance dashboards, coverage summaries, exception reports, rollout reports, shadow comparisons). Regenerable and never authoritative. **Traceability is mandatory**: every report cites the execution manifests — and thereby the hashed evidence items — it derives from; a report whose claims cannot be traced to manifest-listed evidence is invalid, and when a report and evidence disagree, evidence wins.
 
 ## Minimal but sufficient evidence
 
@@ -18,7 +18,7 @@ Evidence stores only what is necessary to explain and reproduce the decision, ve
 
 ## Retention
 
-Retention is configurable by data class and environment (evidence by execution kind, operational logs by severity, reports, failed executions, security events; POC vs production values). The engine hard-codes no enterprise retention periods; final values derive from legal, compliance, operational, and cost requirements. Stored data supports a retention lifecycle — `Hot → Archived → Expired → Disposed` — where disposal follows an approved retention policy and produces a disposal record or lifecycle audit event where required. Evidence is never deleted merely because the engine no longer needs it operationally.
+Retention is configurable by data class and environment (evidence by execution kind, operational logs by severity, reports, failed executions, security events; POC vs production values). The engine hard-codes no enterprise retention periods; final values derive from legal, compliance, operational, and cost requirements. Stored data supports a retention lifecycle — `Hot → Archived → Expired → Disposed`, authoritatively defined once in the glossary (`CONTEXT.md`, **Retention Lifecycle**) — where disposal follows an approved retention policy and produces a disposal record or lifecycle audit event where required. Evidence is never deleted merely because the engine no longer needs it operationally.
 
 ## Operational logging
 
@@ -32,7 +32,7 @@ Every evidence and log record carries a sensitivity classification: `Public`, `I
 
 ## Tamper evidence proportional to maturity
 
-POC: evidence in a physically separate local directory; every evidence item content-hashed; every execution produces a manifest listing each item and its hash; reports reference the manifest. This gives tamper *detection* without infrastructure. Production may add immutable object storage, retention locks, digital signatures, external digest anchoring, and separate security-account ownership — the evidence model supports these without requiring them in the POC.
+POC: evidence in a physically separate local directory; every evidence item content-hashed; every execution produces an **Execution Manifest** — a first-class domain concept (see `CONTEXT.md` and the Domain Model) — listing each item and its hash; reports reference the manifest. This gives tamper *detection* without infrastructure. Production may add immutable object storage, retention locks, digital signatures, external digest anchoring, and separate security-account ownership — the evidence model supports these without requiring them in the POC.
 
 ## Replayability
 

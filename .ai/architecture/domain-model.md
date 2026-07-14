@@ -24,7 +24,7 @@ Consolidation artifact assembled from candidate ADRs 0001–0012 and `CONTEXT.md
 
 ### Engine-release entities (validated engine capabilities — never runtime-supplied)
 
-Evaluation Strategies (`PredicateEvaluation`, `DesiredStateEvaluation`), attribute-provider implementations, the bundled Capability Matrix, and every closed set: Enforcement Mode, Evaluation Role, Applicability Outcome, Provider Result, Technical Outcome, Governance Interpretation, Requirement Outcome, Policy Outcome, Coverage Outcome, NotApplicable Reason, Reversibility Class, Execution Status, severity levels, lifecycle states. (ADR-0003, ADR-0012)
+Evaluation Strategies (`PredicateEvaluation`, `DesiredStateEvaluation`), attribute-provider implementations, the bundled Capability Matrix, and every closed set: Enforcement Mode, Evaluation Role, Applicability Outcome, Provider Result, Technical Outcome, Governance Interpretation, Requirement Outcome, Policy Outcome, Coverage State, Coverage Reason, NotApplicable Reason, Reversibility Class, Execution Status, severity levels, lifecycle states. (ADR-0003, ADR-0012)
 
 ### Produced entities (engine outputs)
 
@@ -85,8 +85,8 @@ Derived Report ──── derives from * Execution Manifests
 
 1. Merged into the protected governance branch = approved; the engine never validates who approved (ADR-0002).
 2. **Uncertainty never grants privilege** — Unknown never satisfies, violates, excuses, or authorizes anything, including writes (ADR-0008, ADR-0011).
-3. **Explicit over inferred** — authority, roles, relief, standing write authority, and matrix selection are declared, never derived from version/mode/date heuristics (ADR-0005). Deliberate exception: *restrictions* may compose mechanically (most-restrictive change budget wins) — inference may only ever remove privilege, never grant it (ADR-0011).
-4. Exactly one active Authoritative Binding per (policy, repository); ambiguity → no enforcement, `Unknown`, high-visibility finding (ADR-0005).
+3. **Explicit over inferred** — authority, roles, relief, standing write authority, and matrix selection are declared, never derived from version/mode/date heuristics (ADR-0005). Deliberate exception: *restrictions* compose mechanically — the effective execution constraint set is the intersection of all applicable constraints, with the most restrictive numeric limit winning — because inference may only ever remove privilege, never grant it (ADR-0011).
+4. At most one active Authoritative Binding per (policy, repository); an official compliance interpretation derives from exactly one. Zero is a normal rollout state producing no official interpretation (neither `Unknown` nor `NotApplicable`); more than one is a configuration error → no enforcement, `Unknown`, high-visibility finding. Enforcement Mode never contributes to determining authority (ADR-0005).
 5. Observation is universal; evaluation requires scope resolution; enforcement requires evaluation, an Enforce-mode authoritative binding, *and* plan approval or standing authority (ADR-0003, ADR-0011).
 6. `CannotDetermine` never becomes `Value Absent`; undetermined capability never becomes unsupported; unknown strategy is never substituted (ADR-0003, ADR-0007, ADR-0012).
 7. Technical Outcomes are never altered by governance artifacts; interpretation is a separate overlay (ADR-0006).
@@ -97,6 +97,7 @@ Derived Report ──── derives from * Execution Manifests
 12. Change budgets are hard boundaries; plans are precondition-bound and never adapted dynamically (ADR-0011).
 13. Scope reduction is not relief; historical evidence survives a repository leaving scope (ADR-0008).
 14. The audit guarantee rests on periodic reconciliation, never event delivery (ADR-0010).
+15. Write authority is granted only through the governed desired-state process; it may be removed or paused through an explicitly defined emergency suspension path — authenticated, append-only, evidenced, later reconciled — that can only reduce authority. Authorization validity (approval, revocation, expiry, standing authority, suspension) is revalidated before every write operation; revocation never undoes completed operations. The concrete emergency path is a deferred decision — the POC uses the governed process for both grant and removal (ADR-0011).
 
 ---
 
@@ -131,7 +132,7 @@ Trigger (manual for POC)
             → Technical Outcome (+ Normalized Observed State)
           → Governance Interpretation (relief: exception/exclusion, validity at timestamp)
             → Requirement Outcome
-      → policy aggregation → Policy Outcome; coverage assessment → Coverage Outcome
+      → policy aggregation → Policy Outcome; coverage assessment → Coverage State (+ Coverage Reasons)
       → Findings (authoritative vs shadow results separated)
       → Plan mode: Remediation Plan (authoritative) / Simulated Plan (shadow)
       → Enforce mode (future writes): per-operation order of ADR-0011

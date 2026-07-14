@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 ---
 
 # One engine, multiple evaluation strategies; Drift retired as a first-class concept
@@ -11,21 +11,25 @@ Centrally Managed State is not a separate subsystem. The governance engine suppo
 
 Everything else is identical across strategies: bindings, modes, evaluation roles, evidence, coverage, exceptions, exclusions, execution, remediation, and change budgets. The engine uses the same closed Technical Outcomes regardless of strategy. No second governance model exists.
 
+Evaluation strategy is **orthogonal to governance policy**: a strategy determines *how* a Requirement's technical outcome is computed — never what is governed, where it applies, or how results are interpreted. Policies, scopes, bindings, and relief are unchanged by strategy choice. A Requirement's evaluation definition takes the form its declared strategy requires: predicate conditions for Predicate Evaluation; a desired-artifact reference plus a Comparison Profile for Desired-State Evaluation (ADR-0006).
+
 **Drift is retired as a first-class domain concept.** "Drift" is simply the common name for a `NonCompliant` technical outcome produced by a Desired-State Evaluation — it participates in the same outcome sets, findings, relief, and remediation as every other noncompliance.
 
 ## Comparison Profile
 
-Desired-State Evaluation requires a versioned **Comparison Profile**, which is trusted desired-state content. The profile determines: compared fields, ignored fields, server-managed fields, normalization rules, ordering rules, default-value handling, and unknown-field behavior. Unknown fields do not automatically become drift; they are processed according to the active profile, and where no rule exists the comparison result is `Unknown` — uncertainty neither grants relief (ADR-0008) nor manufactures findings.
+Desired-State Evaluation requires a versioned **Comparison Profile** — a first-class domain concept: a trusted desired-state entity defined authoritatively in the glossary (`CONTEXT.md`) and the Domain Model. The profile determines: compared fields, ignored fields, server-managed fields, normalization rules, ordering rules, default-value handling, and unknown-field behavior. Unknown fields do not automatically become drift; they are processed according to the active profile, and where no rule exists the comparison result is `Unknown` — uncertainty neither grants relief (ADR-0008) nor manufactures findings.
 
 ## Strategies are engine capabilities, not plug-ins
 
 A strategy implementation is part of a validated engine release, introduced through normal engine development, testing, review, and release processes. Strategies are never dynamically loaded, supplied by deployment configuration or desired-state content, provided as arbitrary scripts, or replaced at runtime by an external implementation. Desired state selects a supported strategy by identifier and supported version; it never provides the implementation.
 
+**Strategy versioning.** Strategy versions are independent of engine versions: a strategy version identifies stable evaluation semantics, and each engine release declares the set of (strategy identifier, strategy version) pairs it supports — a release may support multiple versions of one strategy for compatibility. Desired state selects the pair; the engine release determines availability.
+
 **Unknown strategy behavior.** A Requirement selecting an unknown strategy identifier, an unsupported strategy version, or a strategy unavailable in the running engine release produces Technical Outcome `Unknown`, a high-visibility governance-configuration finding, and evidence identifying the requested and available strategy versions. The engine never skips the requirement, silently substitutes another strategy, downgrades to a simpler strategy, or treats the requirement as not applicable.
 
-**Invariant strategy contract.** Every strategy: consumes the defined Replay Input Set; produces Normalized Observed State; emits only the engine-owned closed Technical Outcome set; produces an explainable evaluation result; is deterministic for the same inputs and strategy version; and records its identifier and version in Evidence. A strategy never: extends or redefines Technical Outcomes; determines governance interpretation; applies Governance Relief; alters policy aggregation; changes applicability semantics; performs remediation; writes to GHES or another governed system; or makes external approval decisions. Strategies compute technical facts; the core engine owns governance meaning.
+**Invariant strategy contract.** Every strategy: consumes the Replay Input Set (authoritative definition: the glossary, `CONTEXT.md`; established by ADR-0009); produces Normalized Observed State; emits only the engine-owned closed Technical Outcome set; produces an explainable evaluation result; is deterministic for the same inputs and strategy version; and records its identifier and version in Evidence. A strategy never: extends or redefines Technical Outcomes; determines governance interpretation; applies Governance Relief; alters policy aggregation; changes applicability semantics; performs remediation; writes to GHES or another governed system; or makes external approval decisions. Strategies compute technical facts; the core engine owns governance meaning.
 
-**Registry.** The engine maintains an internal strategy registry or equivalent dispatch mechanism. For the POC this is an internal seam only — `PredicateEvaluation` and `DesiredStateEvaluation` — with no dynamic discovery, package loading, or third-party strategy API.
+**Strategy dispatch.** The engine maintains an internal, implementation-neutral strategy-dispatch mechanism: given a Requirement's declared (strategy identifier, strategy version), it resolves the corresponding release-owned implementation or yields the unknown-strategy behavior above. For the POC this is an internal seam only — `PredicateEvaluation` and `DesiredStateEvaluation` — with no dynamic discovery, package loading, or third-party strategy API.
 
 **Evidence and determinism.** Every requirement evaluation records: strategy identifier, strategy version, engine version, normalized inputs or their evidence references, normalized observed state, technical outcome, explanation, and the content hashes required for replay — so an auditor can identify the exact comparison logic used. Determinism applies over the complete captured Replay Input Set: any external data required for evaluation is captured or normalized before strategy execution, so a later replay never depends on re-querying a mutable external system.
 

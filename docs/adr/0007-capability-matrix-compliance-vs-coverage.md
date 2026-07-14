@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 ---
 
 # Versioned capability matrix; compliance and coverage reported separately
@@ -20,9 +20,22 @@ The engine obtains the GHES version from a supported server response or administ
 
 A `NotApplicable` requirement carries a closed reason category — `RepositoryCharacteristic` (e.g. no GitHub Actions workflows exist), `PolicyPrecondition` (e.g. a prerequisite governance classification does not match), `PlatformCapabilityUnavailable` (the validated GHES version does not support the required feature) — optionally accompanied by a human-readable explanation. Providers and policies cannot invent semantic categories.
 
-## Coverage outcome
+## Coverage: state and reason
 
-Alongside compliance outcomes (ADR-0006), intended controls receive a coverage outcome: `Covered`, `PartiallyCovered`, `CapabilityGap`, `GovernanceExclusion` (ADR-0008), `Unknown`. Detailed coverage reasons remain available beneath the primary aggregate outcome. A requirement inapplicable due to `PlatformCapabilityUnavailable` contributes nothing to compliance and contributes `CapabilityGap` to coverage. Policy reporting shows both dimensions; `Compliance: Compliant / Coverage: CapabilityGap` ("all evaluable requirements comply, but one or more intended controls cannot be applied because of a platform limitation") must never share a visual or summary status with full compliance at full coverage.
+Alongside compliance outcomes (ADR-0006), the engine reports coverage in two layers, mirroring the platform's recurring state-vs-reason pattern (Technical Outcome vs. Governance Interpretation; authority vs. mode):
+
+- **Coverage State** (closed, policy-level): `Covered`, `PartiallyCovered`, `Unknown` — *how complete* the intended control set is.
+- **Coverage Reason** (closed, per uncovered requirement): `CapabilityGap`, `GovernanceExclusion`, `Unknown` — *why* it is incomplete. Detailed reasons and per-category counts remain available beneath the aggregate.
+
+**Requirement-level contribution.** A requirement contributes `Covered` when it was actually evaluated — `Compliant`, `NonCompliant`, or `Excepted`: the control applied, whatever it found. It is uncovered with reason `CapabilityGap` when `NotApplicable / PlatformCapabilityUnavailable`; uncovered with reason `GovernanceExclusion` when `Excluded` (ADR-0008); `Unknown` when its applicability or evaluation is `Unknown`. Logically inapplicable requirements (`RepositoryCharacteristic`, `PolicyPrecondition`) are not intended for that repository and drop out of coverage computation entirely — coverage measures intended controls only.
+
+**Policy-level aggregation** — derived solely by the deterministic, engine-owned rule over intended requirements; no other mechanism may compute or override it:
+
+1. any intended requirement uncovered for a known reason (`CapabilityGap`, `GovernanceExclusion`) → `PartiallyCovered` — including the zero-covered case, where the per-category counts beneath the aggregate carry the severity;
+2. otherwise any `Unknown` → `Unknown`;
+3. otherwise → `Covered`.
+
+Uncertainty never counts as coverage. Policy reporting shows both dimensions; `Compliance: Compliant / Coverage: PartiallyCovered (CapabilityGap)` ("all evaluable requirements comply, but one or more intended controls cannot be applied because of a platform limitation") must never share a visual or summary status with full compliance at full coverage.
 
 ## Capability gaps are governance findings
 
