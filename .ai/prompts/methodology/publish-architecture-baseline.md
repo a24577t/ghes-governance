@@ -2,25 +2,31 @@
 
 ## Purpose
 
-A major project phase has successfully completed and the Phase Gate Review has determined that the project is ready to advance.
+A major project phase has successfully completed.
 
-Your responsibility is to publish a new **Architecture Baseline** that becomes the authoritative architectural snapshot for this milestone.
+The Phase Gate Review has determined that the project is ready to advance.
 
-The Architecture Baseline is the primary onboarding document for the project.
+Your responsibility is to publish the approved architectural milestone.
 
-It summarizes the approved architecture at a specific point in the project's evolution and provides navigation into the repository.
+The primary artifact produced is a new **Architecture Baseline** that becomes the authoritative architectural snapshot for the completed phase.
 
-The Architecture Baseline is:
+This prompt also prepares the repository for the next project phase by updating the repository's published architectural state.
 
-- NOT an Architecture Discovery artifact
-- NOT an ADR
-- NOT a Design Document
-- NOT a Specification
-- NOT an Implementation Guide
+This prompt assumes the architecture has already been approved.
 
-It is a **consolidation artifact** that reflects approved architectural decisions.
+It does not redesign or re-evaluate the architecture.
 
-It must never introduce new architecture.
+---
+
+# Preconditions
+
+Execute this prompt only after:
+
+- Architecture Consolidation is complete.
+- Phase Gate Review returned **PASS** or **PASS WITH CONDITIONS**.
+- Architectural decisions have been accepted.
+
+If these conditions are not satisfied, stop and report that the repository is not ready for publication.
 
 ---
 
@@ -33,17 +39,17 @@ At minimum review:
 - `.ai/architecture/STATUS.md`
 - `.ai/architecture/domain-model.md`
 - `.ai/architecture/architecture-principles.md`
-- `.ai/architecture/OPEN_ITEMS.md`
 - `CONTEXT.md`
-- `docs/adr/`
+- Relevant ADRs
+- Phase Gate Review
 
 Also review when available:
 
 - Previous Architecture Baseline
 - Architecture Discovery Brief
-- Phase Gate Review
 - Session Summaries
-- Roadmap
+
+Review only the artifacts necessary to publish the completed architectural milestone.
 
 ---
 
@@ -61,23 +67,36 @@ Publish the next sequential version.
 
 Never overwrite an existing baseline.
 
-Every baseline is immutable and represents an approved architectural milestone.
+Every Architecture Baseline is immutable.
 
 ---
 
 # Responsibilities
 
-## 1. Consolidate the Architecture
+## 1. Publish the Architecture
 
 Produce a concise but complete description of the approved architecture.
 
+The Architecture Baseline should summarize the architecture without replacing the ADRs.
+
 Reference ADRs.
 
-Do not duplicate ADR content.
+Do not reproduce ADR content.
 
-The baseline is an architectural index.
+Capture:
 
-It is not a replacement for the ADRs.
+- Executive Summary
+- Project Mission
+- Current Phase
+- Architecture Overview
+- Governance Model
+- Domain Overview
+- Architecture Principles
+- Current Scope
+- Deferred Scope
+- ADR Index
+- Recommended Reading
+- Next Baseline Trigger
 
 ---
 
@@ -85,11 +104,11 @@ It is not a replacement for the ADRs.
 
 Do not introduce:
 
-- new architectural concepts
-- new principles
+- new architecture
 - new ADRs
-- new requirements
 - new terminology
+- new principles
+- new requirements
 
 If contradictions are discovered:
 
@@ -97,145 +116,103 @@ If contradictions are discovered:
 - identify impacted ADRs
 - stop publication
 
-Do not resolve architectural contradictions inside the baseline.
+Do not resolve architectural contradictions during publication.
 
 ---
 
-## 3. Capture the Current Architecture
+## 3. Publish Repository State
 
-Describe:
+Update `STATUS.md` to reflect the newly published architectural milestone.
 
-- Project Mission
+Update only:
+
+- Completed Phase
 - Current Phase
-- Architecture Overview
-- Governance Model
-- Domain Overview
-- Architectural Principles
-- Current Scope
-- Deferred Scope
+- Current Architecture Baseline
+- Architecture Version
+- Repository Version (when changed)
+- Next Milestone
+
+STATUS.md should remain concise and represent the current repository state.
 
 ---
 
-## 4. Record Major Decisions
+## 4. Prepare Future Sessions
 
-Summarize the major architectural decisions.
+Verify that the repository is ready for a future Session Bootstrap.
 
-Each decision must reference its governing ADR.
+Confirm:
 
-Do not reproduce ADR content.
+- STATUS correctly references the latest Architecture Baseline.
+- Repository navigation is correct.
+- Architecture artifacts remain internally consistent.
+- A new AI session can understand the project without relying on previous conversations.
 
----
-
-## 5. Record Deferred Work
-
-Summarize:
-
-- deferred capabilities
-- future architectural work
-- environmental assumptions
-- known limitations
-
-Deferred work is informational.
-
-It is not a backlog.
+The repository should become the authoritative project memory.
 
 ---
 
-## 6. Produce a Change Summary
+## 5. Repository Publication Recommendation
 
-If a previous baseline exists include:
+Determine whether the completed milestone should result in a repository release.
 
-# Changes Since Previous Baseline
+Recommend:
 
-Summarize:
+### Architecture Version
 
-- newly added ADRs
-- refined ADRs
-- removed assumptions
-- completed phases
-- newly deferred capabilities
-- architectural changes
-
-If this is the first baseline omit this section.
-
----
-
-## 7. Repository Navigation
-
-Provide a recommended reading order for future engineers and AI assistants.
-
-The baseline becomes the primary onboarding document.
-
-Recommended order:
-
-1. STATUS
-2. Latest Architecture Baseline
-3. Domain Model
-4. Architecture Principles
-5. CONTEXT (Glossary)
-6. Relevant ADRs
-7. Specifications
-
----
-
-## 8. Architecture Overview Diagram
-
-Include a simple high-level architecture diagram.
-
-Use Mermaid when appropriate.
-
-The objective is orientation rather than implementation detail.
-
----
-
-## 9. What This Baseline Is
-
-Include a short section explaining:
-
-- what the baseline represents
-- what it should be used for
-- what documents contain additional detail
-
----
-
-## 10. What This Baseline Is Not
-
-Explicitly state that this document is not:
-
-- the specification
-- the implementation guide
-- the discovery brief
-- the ADR collection
-
----
-
-## 11. Recommended Reading
-
-Provide recommended ADRs grouped by topic.
-
-For example:
-
-- Governance
-- Evaluation
-- Execution
-- Evidence
-- Remediation
-
-This should help readers quickly locate detailed architectural decisions.
-
----
-
-## 12. Next Baseline Trigger
-
-Document when the next Architecture Baseline should be published.
+Recommend the next Architecture Version.
 
 Examples:
 
-- Vertical Slice 1 complete
-- GHES integration complete
-- Enterprise Pilot complete
+- 1.0
+- 1.1
+- 2.0
 
-This establishes the expected architectural lifecycle.
+Explain the recommendation.
+
+---
+
+### Repository Version
+
+Recommend the repository version using Semantic Versioning.
+
+Examples:
+
+- v0.1.0
+- v0.2.0
+- v1.0.0
+
+Explain the recommendation.
+
+---
+
+### Git Tag
+
+If appropriate recommend:
+
+- Annotated Git Tag
+- Tag Name
+
+Example:
+
+```
+v0.1.0
+```
+
+Do not create the tag.
+
+---
+
+### GitHub Release
+
+If appropriate recommend:
+
+- Release Title
+- Release Summary
+
+Do not publish the release.
+
+Provide recommendations only.
 
 ---
 
@@ -249,7 +226,7 @@ Every Architecture Baseline should contain:
 4. Current Phase
 5. Architecture Overview
 6. Architecture Diagram
-7. Architectural Principles
+7. Architecture Principles
 8. Domain Overview
 9. ADR Index
 10. Current Scope
@@ -266,7 +243,7 @@ Every Architecture Baseline should contain:
 
 # Metadata
 
-Every baseline should begin with metadata similar to:
+Every Architecture Baseline should begin with metadata similar to:
 
 - Baseline Version
 - Status
@@ -277,8 +254,23 @@ Every baseline should begin with metadata similar to:
 - Superseded By
 - Architecture Version
 - Related ADRs
-- Recommended Repository Release (optional)
-  
+
+---
+
+# Repository Navigation
+
+The published Architecture Baseline becomes the primary onboarding document.
+
+Recommended reading order:
+
+1. Latest Architecture Baseline
+2. STATUS
+3. Domain Model
+4. Architecture Principles
+5. CONTEXT
+6. Relevant ADRs
+7. Specifications
+
 ---
 
 # Constraints
@@ -286,13 +278,16 @@ Every baseline should begin with metadata similar to:
 Do not:
 
 - redesign the architecture
+- re-evaluate the architecture
 - rewrite ADRs
 - create specifications
 - generate implementation details
-- create tickets
+- create implementation tasks
 - modify architectural history
+- create Git tags
+- publish GitHub Releases
 
-This document reflects architecture.
+This prompt publishes architecture.
 
 It does not evolve architecture.
 
@@ -304,70 +299,30 @@ Publish:
 
 `.ai/architecture/architecture-baseline-v<next>.md`
 
-The document should be suitable for:
+Update:
 
-- onboarding architects
-- onboarding senior engineers
-- onboarding AI assistants
-- executive technical reviews
-- architecture governance reviews
+`.ai/architecture/STATUS.md`
+
+Provide:
+
+- Architecture Version Recommendation
+- Repository Version Recommendation
+- Git Tag Recommendation
+- GitHub Release Recommendation
+
+Do not perform repository release actions.
 
 ---
 
 # Success Criteria
 
-A knowledgeable engineer should be able to understand the architecture by reading this document before consulting the Domain Model or ADRs.
+Successful publication means:
 
-Every architectural statement must trace back to:
+- the Architecture Baseline becomes the authoritative onboarding document;
+- STATUS accurately reflects the newly published milestone;
+- repository navigation is correct;
+- the repository is ready for future Session Bootstrap;
+- repository version recommendations are complete;
+- the repository fully represents the approved architectural state without relying on previous chat history.
 
-- an approved ADR
-- the Domain Model
-- the Architecture Principles
-
-If architectural statements cannot be traced, report them rather than inventing new architecture.
-
-The published baseline becomes the authoritative architectural snapshot for the completed project phase.
-
-Future AI sessions should begin by reading the **latest Architecture Baseline** before consulting supporting architecture artifacts.
-
-## Versioning
-
-Every published Architecture Baseline must review versioning.
-
-Determine:
-
-### 1. Baseline Version
-
-Publish the next sequential Architecture Baseline.
-
-Examples:
-
-- architecture-baseline-v1.md
-- architecture-baseline-v2.md
-
-### 2. Architecture Version
-
-Recommend the Architecture Version.
-
-Use Semantic Versioning principles:
-
-- Major (2.0) – significant architectural evolution
-- Minor (1.1) – incremental architectural capability
-- Patch (1.0.1) – editorial or clarification changes only
-
-Explain why the version changed.
-
-### 3. Repository Release
-
-Determine whether the completed phase represents a release milestone.
-
-If appropriate, recommend:
-
-- Git tag (for example `v1.0.0`)
-- RELEASES.md update
-- CHANGELOG update (if maintained)
-
-Do not create Git tags.
-
-Only recommend release actions.
-
+The repository should become the authoritative memory of the project.

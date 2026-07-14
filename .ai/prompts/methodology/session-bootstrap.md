@@ -1,208 +1,274 @@
-# Architecture Baseline Prompt
+# Session Bootstrap Prompt
 
 ## Purpose
 
-You are joining an existing enterprise architecture project.
+You are beginning a new working session in an existing enterprise architecture and software project.
 
-This project has completed **Architecture Discovery Phase 1**.
+Your first responsibility is to understand the current project state before answering questions, recommending changes, creating plans, or modifying files.
 
-The repository is now the authoritative source of truth.
+The repository is the project’s persistent memory.
 
-Your first responsibility is to understand the architecture before making recommendations.
+Previous chat history is not authoritative and must not be required to continue the project.
 
-Do **not** redesign the architecture.
+This prompt is read-only.
 
-Do **not** introduce new architectural concepts.
-
-Assume every architectural decision exists for a reason unless you discover a contradiction.
+It does not create, modify, rename, move, commit, or delete repository content.
 
 ---
 
-# Repository Authority
+# Responsibilities
 
-The following documents are authoritative and must be reviewed before providing recommendations.
+You must:
 
-Read them in this order.
+1. Identify the current project phase.
+2. Locate the latest approved Architecture Baseline.
+3. Understand the current architecture at the level necessary for the requested task.
+4. Review current status, open items, and relevant detailed decisions.
+5. Confirm your understanding before beginning substantive work.
 
-1. `.ai/architecture/STATUS.md`
-2. Latest .ai/architecture/architecture-baseline-vN.md
-3. `.ai/architecture/domain-model.md`
-4. `CONTEXT.md`
-5. `.ai/architecture/architecture-principles.md`
-6. `.ai/architecture/OPEN_ITEMS.md`
-7. Then read only the ADRs referenced by the baseline that are relevant to the current task.
-Read additional ADRs only when deeper architectural context is required, location `docs/adr/`
-
-The Architecture Discovery Brief is historical context.
-
-If the Discovery Brief conflicts with an ADR, Domain Model, or Architecture Baseline, the newer artifact is authoritative.
+Do not redesign the architecture unless the requested task reveals a genuine contradiction or missing architectural decision.
 
 ---
 
-# Current Project State
+# Reading Order
 
-Assume:
+Read repository artifacts in the following order.
 
-* Architecture Discovery Phase 1 is complete.
-* Candidate ADRs have been reviewed and consolidated.
-* The Domain Model has been established.
-* A ubiquitous language has been defined.
-* The repository contains the current architectural baseline.
+## 1. Current Project Status
 
-The architecture should be considered stable unless evidence demonstrates otherwise.
+Read:
 
----
+```text
+.ai/architecture/STATUS.md
+```
 
-# Your Responsibilities
+Use it to determine:
 
-Your first responsibility is understanding.
+* current phase;
+* latest Architecture Baseline;
+* architecture version;
+* repository version, when recorded;
+* current objective;
+* next milestone;
+* current blocking conditions or open architectural decisions.
 
-Before proposing changes:
+If `STATUS.md` does not exist or conflicts with the repository, report the inconsistency.
 
-* understand the architecture;
-* understand the Domain Model;
-* understand the architectural principles;
-* understand the ADRs;
-* understand the project goals.
+Do not create or repair it during bootstrap.
 
-Only then may recommendations be made.
+## 2. Latest Architecture Baseline
 
----
+Locate all files matching:
 
-# Architectural Philosophy
+```text
+.ai/architecture/architecture-baseline-v*.md
+```
 
-Preserve these principles unless a contradiction is discovered.
+Determine the latest baseline using the baseline version and status recorded inside the documents.
 
-* Policy-first governance.
-* Brownfield adoption.
-* Minimal disruption to development teams.
-* Explicit intent over inference.
-* Uncertainty never grants privilege.
-* Evidence is authoritative.
-* Reports are derived.
-* Compliance and Coverage are independent.
-* One Governance Engine.
-* Multiple Evaluation Strategies.
-* Strategies compute facts.
-* The engine owns governance meaning.
-* Periodic reconciliation is authoritative.
-* Event-driven processing is acceleration only.
-* Evaluation Role constrains execution authority.
-* Restrictions may be inferred.
-* Authority may never be inferred.
+Read only the latest approved or otherwise currently authoritative baseline.
 
----
+Do not assume that filename ordering alone establishes authority.
 
-# Current Phase
+Earlier baselines are historical artifacts. Read them only when:
 
-Current project phase:
+* the current task concerns architectural evolution;
+* a change-since-baseline comparison is required;
+* the latest baseline explicitly refers the reader to an earlier baseline.
 
-**Phase 2 — Vertical Slice Specification**
+If no Architecture Baseline exists, report that fact and continue using the remaining authoritative artifacts.
 
-The immediate objective is **not** enterprise deployment.
+## 3. Domain and Terminology
 
-The immediate objective is producing a high-quality specification for the first end-to-end vertical slice.
+Read, when present:
 
----
+```text
+.ai/architecture/domain-model.md
+.ai/architecture/architecture-principles.md
+CONTEXT.md
+```
 
-# Current Vertical Slice
+Use these documents to understand:
 
-The first vertical slice should remain intentionally small.
+* domain entities and relationships;
+* invariants;
+* architectural principles;
+* approved terminology;
+* terms that must be avoided.
 
-Target capabilities include:
+Do not redefine established terminology.
 
-* Synthetic Repository Inventory
-* GitHub-native Attribute Provider
-* Scope Resolution
-* Predicate Evaluation
-* Composite Policy Evaluation
-* Compliance
-* Coverage
-* Evidence Generation
-* Dry-run Remediation Planning
+## 4. Current Open Items
 
-The first vertical slice is read-only.
+Read:
 
-No writes to GitHub.
+```text
+.ai/architecture/OPEN_ITEMS.md
+```
 
-No production integrations.
+only if it exists and is identified by `STATUS.md` or the latest baseline as a current authoritative artifact.
 
-No AWS deployment.
+Do not treat deferred items as current requirements.
 
-No ServiceNow integration.
+Do not reopen resolved architectural questions.
 
----
+## 5. Relevant ADRs
 
-# Out of Scope
+Read only the ADRs relevant to the current task.
 
-Unless explicitly requested, do not expand scope into:
+Use the Architecture Baseline’s ADR index and recommended-reading section to select them.
 
-* Production deployment
-* Enterprise rollout
-* Runner infrastructure
-* AWS architecture
-* ServiceNow integration
-* Authentication design
-* Multi-tenant deployment
-* High availability
-* Performance optimization
-* Event-driven execution
-* Automatic remediation
+Read additional ADRs when:
 
-These have intentionally been deferred.
+* the current task crosses several architectural domains;
+* the baseline lacks sufficient detail;
+* an apparent contradiction must be investigated.
 
----
+Do not automatically read every ADR unless the task is a full architecture review.
 
-# Working Style
+## 6. Specifications and Implementation Artifacts
 
-Do not generate implementation immediately.
+When the current phase or requested task involves specification or implementation, read the relevant artifacts after the architectural material.
 
-When reviewing architecture:
+Examples include:
 
-* challenge assumptions;
-* identify contradictions;
-* identify ambiguity;
-* identify hidden coupling;
-* identify unnecessary complexity.
+```text
+specifications/
+docs/specifications/
+src/
+tests/
+```
 
-When no contradiction exists:
+Use actual repository structure rather than assuming these paths exist.
 
-Prefer clarification over redesign.
+Architecture remains authoritative over specifications.
+
+Specifications remain authoritative over implementation.
 
 ---
 
-# Decision Authority
+# Authority Order
 
-Treat the repository as the project's memory.
+Unless a more specific repository rule states otherwise, use this authority order:
 
-Do not rely on previous chat sessions.
+1. Accepted ADRs
+2. Latest approved Architecture Baseline
+3. Domain Model
+4. Architecture Principles
+5. Approved specifications
+6. Proposed ADRs
+7. Current `STATUS.md`
+8. Historical discovery documents
+9. Session summaries and prior chat context
 
-When uncertain:
+When artifacts conflict:
 
-Reference the repository.
+* identify the conflict;
+* cite the affected files and sections;
+* do not silently choose a new interpretation;
+* do not modify files during bootstrap.
 
-Do not invent missing architectural decisions.
+If the repository explicitly defines a different authority order, follow the repository-defined order and report it.
 
-If a new architectural decision is required:
+---
 
-* explain why;
-* identify impacted ADRs;
-* recommend the smallest possible change.
+# Historical Documents
+
+Treat documents such as the Architecture Discovery Brief and session summaries as historical context.
+
+They explain how the architecture evolved but do not override newer architectural artifacts.
+
+Do not rewrite history during bootstrap.
+
+---
+
+# Architectural Conduct
+
+Preserve established architecture unless evidence requires reconsideration.
+
+When reviewing a task:
+
+* prefer clarification over redesign;
+* identify contradictions rather than silently resolving them;
+* distinguish architecture questions from specification and implementation questions;
+* recommend the smallest change that resolves a genuine gap;
+* identify affected ADRs when a new architectural decision is required.
+
+Do not invent missing decisions.
+
+Do not infer authority.
+
+Uncertainty does not grant permission to proceed with destructive or architecture-changing work.
+
+---
+
+# Output
+
+After reading the necessary artifacts, provide a concise **Session Context Report** containing:
+
+## Current State
+
+* Current project phase
+* Current objective
+* Latest Architecture Baseline
+* Architecture version
+* Repository version, when recorded
+* Next milestone
+
+## Relevant Architecture
+
+Summarize only the architectural concepts relevant to the current task.
+
+Do not reproduce the complete baseline.
+
+## Relevant Sources
+
+List the specific files and ADRs consulted.
+
+## Open or Blocking Items
+
+List only items that affect the current task.
+
+## Readiness
+
+State one of:
+
+* `Ready to Proceed`
+* `Ready with Conditions`
+* `Not Ready`
+
+Explain any conditions or blockers briefly.
+
+---
+
+# Constraints
+
+Do not:
+
+* modify repository files;
+* create documents;
+* update `STATUS.md`;
+* publish an Architecture Baseline;
+* create or change ADRs;
+* create specifications;
+* create tasks or tickets;
+* commit or push changes;
+* create tags or releases;
+* rely on previous chat history as authoritative context.
+
+This prompt exists only to establish accurate working context for the new session.
 
 ---
 
 # Success Criteria
 
-The architecture is considered successful when:
+The bootstrap is successful when:
 
-* terminology remains consistent;
-* ADRs remain internally consistent;
-* the Domain Model remains coherent;
-* specifications trace cleanly back to architectural decisions;
-* implementation can proceed without architectural ambiguity.
+* the current phase and objective are correctly identified;
+* the latest authoritative baseline is correctly selected;
+* only task-relevant detailed artifacts are read;
+* terminology and architectural authority are preserved;
+* conflicts and missing information are surfaced;
+* no repository content is changed;
+* the session can continue without relying on earlier chat history.
 
-The objective is to preserve architectural integrity while enabling incremental implementation.
-
-Read the repository first.
-
-Then proceed with the current task.
