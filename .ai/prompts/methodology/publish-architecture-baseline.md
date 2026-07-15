@@ -10,11 +10,20 @@ Your responsibility is to publish the approved architectural milestone.
 
 The primary artifact produced is a new **Architecture Baseline** that becomes the authoritative architectural snapshot for the completed phase.
 
-This prompt also prepares the repository for the next project phase by updating the repository's published architectural state.
+Publish the authoritative architectural state of the repository and prepare the repository to become the sole source of truth for subsequent engineering work.
 
 This prompt assumes the architecture has already been approved.
 
-It does not redesign or re-evaluate the architecture.
+Publication reflects approved architecture.
+
+It never:
+
+- changes architecture
+- creates architecture
+- interprets unresolved decisions
+- modifies ADRs
+- creates specifications
+- creates implementation artifacts
 
 ---
 
@@ -32,7 +41,7 @@ If these conditions are not satisfied, stop and report that the repository is no
 
 # Inputs
 
-Review the repository before beginning.
+Review the repository before beginning publication. Previous conversations may provide historical context but must not override repository content.
 
 At minimum review:
 
@@ -46,10 +55,22 @@ At minimum review:
 Also review when available:
 
 - Previous Architecture Baseline
-- Architecture Discovery Brief
-- Session Summaries
+- Architecture Discovery Brief (historical only)
+- Session Handoff (only when unpublished work exists)
 
 Review only the artifacts necessary to publish the completed architectural milestone.
+
+---
+
+# Publication Authority
+
+Publication does not create architecture.
+
+Publication reflects architecture that has already been approved.
+
+If architectural uncertainty exists:
+
+stop publication.
 
 ---
 
@@ -67,11 +88,37 @@ Publish the next sequential version.
 
 Never overwrite an existing baseline.
 
-Every Architecture Baseline is immutable.
+Architecture Baselines are immutable publications.
+
+Never edit an existing baseline.
+
+Corrections are published in the next baseline.
 
 ---
 
 # Responsibilities
+
+## 0. Validate Repository State
+
+Before publishing, verify:
+
+- STATUS.md exists.
+- The latest Architecture Baseline (if any) is internally consistent.
+- Referenced ADRs exist.
+- Required architecture artifacts exist.
+- Repository navigation is valid.
+  - Repository navigation resolves correctly.
+  - Referenced documents exist.
+  - Referenced Architecture Baselines exist.
+  - Referenced ADRs exist.
+  - Referenced specifications (when applicable) exist.
+
+If inconsistencies are discovered:
+
+- report them;
+- stop publication.
+
+Do not repair repository state during publication.
 
 ## 1. Publish the Architecture
 
@@ -135,6 +182,8 @@ Update only:
 
 STATUS.md should remain concise and represent the current repository state.
 
+Do not add architectural narrative to STATUS.md; it is a concise project status document, not an architecture document.
+
 ---
 
 ## 4. Prepare Future Sessions
@@ -146,7 +195,9 @@ Confirm:
 - STATUS correctly references the latest Architecture Baseline.
 - Repository navigation is correct.
 - Architecture artifacts remain internally consistent.
-- A new AI session can understand the project without relying on previous conversations.
+- Verify that a new engineering session can begin using only the repository.
+
+The repository should contain sufficient authoritative information that previous chat history is unnecessary.
 
 The repository should become the authoritative project memory.
 
@@ -161,6 +212,9 @@ Recommend:
 ### Architecture Version
 
 Recommend the next Architecture Version.
+These are recommendations only.
+
+Do not modify repository version metadata outside STATUS.
 
 Examples:
 
@@ -263,8 +317,8 @@ The published Architecture Baseline becomes the primary onboarding document.
 
 Recommended reading order:
 
-1. Latest Architecture Baseline
-2. STATUS
+1. STATUS
+2. Latest Architecture Baseline
 3. Domain Model
 4. Architecture Principles
 5. CONTEXT
@@ -326,3 +380,7 @@ Successful publication means:
 - the repository fully represents the approved architectural state without relying on previous chat history.
 
 The repository should become the authoritative memory of the project.
+
+Successful publication establishes a new architectural starting point.
+
+Future engineering work should begin from the published repository state rather than unpublished conversation context.

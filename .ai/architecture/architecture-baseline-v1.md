@@ -141,9 +141,8 @@ The Architecture Discovery Brief is historical context; newer artifacts win on c
 1. **Land the accepted architecture on `main`** via branch and PR — the load-bearing condition; this baseline is not authoritative memory until merged.
 2. **Restore an open-items/decision-log register** — to be recreated in the baseline PR.
 3. **STATUS.md refresh** — done at this publication.
-4. **`ab-old.md`** — marked superseded at this publication; remove in the PR.
-5. **Environmental unknowns** (GHES version, permissions, rate limits, metadata hygiene) — deferred by design; validated when the platform first touches a real GHES.
-6. **`gh` CLI unavailable** on the working machine — release and issue-tracker logistics only.
+4. **Environmental unknowns** (GHES version, permissions, rate limits, metadata hygiene) — deferred by design; validated when the platform first touches a real GHES.
+5. **`gh` CLI unavailable** on the working machine — release and issue-tracker logistics only.
 
 Specification-level items (slice consolidation, schemas, scope-expression syntax, Expiring-threshold location, retention configuration, reporting personas) proceed into `to-spec`.
 
@@ -177,4 +176,4 @@ Not applicable — this is the first baseline.
 
 - **Baseline Version: v1.** First baseline; no predecessor exists.
 - **Architecture Version: 1.0.0.** Initial version: Architecture Discovery Phase 1 produced the first complete, consolidated, internally consistent, and **accepted** architecture. Bump guidance: editorial/clarification changes → patch (1.0.1); new architectural capability (e.g. the emergency-suspension path, standing authority) → minor (1.1.0); changes to Domain Model entities, invariants, or closed sets → major (2.0.0).
-- **Repository Version: v0.1.0 recommended** — an architecture milestone with no product code; 0.x signals pre-implementation honestly. Annotated tag `v0.1.0` on the baseline PR merge commit; reserve v0.2.0 for Vertical Slice 1 completion and 1.0.0 for the first real governance work. (This supersedes the earlier namespaced `arch-baseline-v1.0.0` suggestion — one semver line, the 0.x prefix already prevents product-release misreading.)
+- Repository Version: v0.1.1
