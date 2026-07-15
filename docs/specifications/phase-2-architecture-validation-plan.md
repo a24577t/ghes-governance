@@ -7,7 +7,7 @@
 | Date | 2026-07-14 |
 | Derived from | The original Vertical Slice 1 specification draft (2026-07-14), re-scoped by the same-day scope review |
 | Governs | The full architecture-validation phase (Phase 2) as a sequence of implementation slices |
-| Authoritative architecture | Architecture Baseline v1 (`.ai/architecture/architecture-baseline-v1.md`), ADRs 0001–0012 |
+| Authoritative architecture | Architecture Baseline v1 (`.ai/architecture/architecture-baseline-v1.md`), Architecture Version 1.0.1, ADRs 0001–0013 |
 
 **This document must never be labeled `ready-for-agent` or implemented from directly.** It is the phase-level map: the consolidated definition of what the POC phase demonstrates (the union of the ADR "first vertical slice" / "POC boundary" clauses), decomposed into sequenced slices. The only implementable artifact for the first increment is the separate specification `vertical-slice-1-observe-mode-tracer.md`.
 
@@ -17,7 +17,7 @@
 
 Enterprise platform and governance teams running GitHub Enterprise Server cannot answer, with evidence, the questions their security and audit functions keep asking: *Which repositories comply with our governance policies? Which intended controls are actually applied? Who accepted which risk, and until when? What would remediation change?* Configuration is spread across thousands of brownfield repositories, checking is manual and unrepeatable, and results cannot be traced to the exact policy version, observed state, and time they were true.
 
-The project has a complete, accepted architecture (Architecture Baseline v1, ADRs 0001–0012) — but it is unvalidated by working software. Until the architecture runs end to end, it is a set of promises: the staged pipeline, the closed outcome sets, the compliance-versus-coverage split, the evidence model, and the dry-run planning model have never been exercised together.
+The project has a complete, accepted architecture (Architecture Baseline v1, ADRs 0001–0013) — but it is unvalidated by working software. Until the architecture runs end to end, it is a set of promises: the staged pipeline, the closed outcome sets, the compliance-versus-coverage split, the evidence model, and the dry-run planning model have never been exercised together.
 
 ## Phase Goal
 
@@ -80,7 +80,7 @@ The user stories below are preserved verbatim from the original specification dr
 13. `[Slice 1]` As a governance operator, I want a future-dated binding to become active only when an execution's fixed Evaluation Timestamp falls within its half-open effective period, so that activation never silently depends on merge timing.
 14. `[Slice 1]` As a compliance auditor, I want every finding to record the binding version, mode, role, effective period, and the Evaluation Timestamp used, so that evidence distinguishes observed, planned, excepted, and excluded results.
 15. `[Slice 1]` As a governance operator, I want zero active authoritative bindings for a (policy, repository) pair to produce no official compliance interpretation — neither `Unknown` nor `NotApplicable` — while remaining visible in inventory and binding provenance, so that a normal rollout state is never miscounted as a result.
-16. `[Slice 1]` As a governance operator, I want more than one active authoritative binding for a pair to yield `Unknown`, no plan, and a high-visibility governance-configuration finding identifying every conflicting binding, so that ambiguity about authority never resolves silently.
+16. `[Slice 1]` As a governance operator, I want more than one active authoritative binding for a pair to yield official Policy Outcome and Coverage State of `Unknown`, no plan, and a high-visibility governance-configuration finding identifying every conflicting binding and any requirement-set divergence — with each conflicting binding still evaluated as explanatory evidence but never as an official outcome, and no requirement set synthesized across their policy versions (ADR-0013) — so that ambiguity about authority never resolves silently.
 17. `[Slice 5]` As a governance policy author, I want shadow bindings evaluated independently and their results clearly separated from the authoritative result, so that pilot analysis never contaminates the official answer.
 18. `[Slice 6, requires 5]` As a governance policy author, I want a shadow binding in Plan mode to produce a Simulated Plan — labeled as shadow, never executable — so that prospective impact is visible without creating executable artifacts.
 19. `[Slice 5]` As a governance operator, I want a shadow binding declared in Enforce mode to behave as simulation only, so that the evaluation role always caps the mode.

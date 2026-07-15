@@ -22,30 +22,40 @@ Architecture Baseline v1 is immutable and predates this split; it is **not** edi
 - [x] Ubiquitous Language (`CONTEXT.md`)
 - [x] Domain Model
 - [x] ADRs 0001–0012 — all **accepted** (2026-07-14)
+- [x] ADR-0013 — refinement, **accepted** (2026-07-15)
 - [x] Architecture Principles (12)
 - [x] Phase Gate Review — **PASS WITH CONDITIONS** (2026-07-14)
 - [x] Architecture Baseline v1 published
 
 ## Current Architecture Baseline
 
-`.ai/architecture/architecture-baseline-v1.md` — Baseline v1, Architecture Version **1.0.0**
+`.ai/architecture/architecture-baseline-v1.md` — Baseline v1. The baseline document records Architecture Version 1.0.0; the current Architecture Version is **1.0.1** (see Architecture Refinements Since Baseline v1). Baseline v2 is not published for this refinement.
 
 ## Versions
 
-- Architecture Version: 1.0.0
+- Architecture Version: 1.0.1 (Baseline v1 records 1.0.0; see Architecture Refinements Since Baseline v1)
 - Repository Version: v0.1.1
 
-## Active Architecture Review
+## Architecture Refinements Since Baseline v1
 
-One architectural decision is open, so Architecture Baseline v1 §13 ("No architectural decisions are open") is no longer current.
+No architectural decisions are open. Baseline v1 §13 ("No architectural decisions are open") remains true, but its §1/§9 ADR range (0001–0012) and §19 Architecture Version (1.0.0) are superseded by the record below. Baseline v1 is immutable and is **not** edited; this section carries the reconciliation.
 
-**ADR-0013** — `docs/adr/0013-authority-conflict-no-synthesized-requirement-set.md`, status **proposed**. Refines how ADR-0005, ADR-0006, and ADR-0007 interact when more than one active authoritative binding matches a (policy identifier, repository) pair. Reverses no accepted ADR and adds no closed set. Raised by specification review of Vertical Slice 1 — Observe-Mode Tracer.
+**ADR-0013 — Authority conflict: no synthesized requirement set.** `docs/adr/0013-authority-conflict-no-synthesized-requirement-set.md`, status **accepted** (2026-07-15). Refines how ADR-0005, ADR-0006, and ADR-0007 interact when more than one active authoritative binding matches a (policy identifier, repository) pair: each conflicting binding is still evaluated but only as explanatory evidence, never as an official governance outcome; requirement sets are never synthesized across conflicting policy versions; the pair's official Policy Outcome and Coverage State are both `Unknown`, the latter by a precedence-0 case decided before requirement-level aggregation. Reverses no accepted ADR, adds no capability, defines no new closed set. Raised by specification review of Vertical Slice 1 — Observe-Mode Tracer.
 
-Downstream updates (Domain Model invariant 4, `CONTEXT.md`, the slice specification's authority selection / AC 5 / S5, phase plan story 16) are identified but deliberately **unapplied** pending review. Architecture Version remains 1.0.0 until acceptance; whether the invariant-4 refinement is a patch or a major bump under Baseline §19 — which does not distinguish an invariant *changed* from one *clarified* — is decided at acceptance.
+Applied downstream: Domain Model invariant 4 and header; `CONTEXT.md` (Authoritative Binding, Coverage State); the slice specification (authority selection, story 14, AC 5, S5, reference bundle); phase plan story 16.
+
+**Architecture Version 1.0.1** — patch. No new capability, no reversal of an accepted decision, no new domain entity, no new closed set, no implementation incompatibility (nothing is built yet); it clarifies a previously under-specified interaction between existing ADRs.
+
+**Baseline stays v1.** Baseline v2 is published at the next planned architectural milestone — completion of the Phase 2 Architecture Validation Sequence — not for this clarification. Baselines track project milestones, not every refinement.
+
+**Methodology gaps this review exposed** (recorded, not yet acted on):
+
+1. Baseline §19's version rules are too coarse: they do not distinguish an invariant *clarified* from an invariant *changed*, and read literally would have forced 2.0.0 here. Intended refinement — clarification → patch; behavioral change → minor; conceptual-model change or new invariant → major.
+2. The methodology has no notion of a **Refinement ADR** as distinct from a discovery ADR. The pattern this review established: when specification review exposes a contradiction or gap between accepted ADRs, create a refinement ADR rather than editing accepted ADRs in place — and carry forward navigation from the next baseline, since the accepted ADRs cannot point forward to it.
 
 ## Current Objective
 
-Review and approve the specification for Vertical Slice 1 — Observe-Mode Tracer. Blocked in part on ADR-0013 above: ADRs outrank specifications, so AC 5 and S5 cannot be finalized until it is accepted.
+Review and approve the specification for Vertical Slice 1 — Observe-Mode Tracer. ADR-0013 is accepted and its downstream updates are applied; specification review resumes.
 
 ## Current Validation Sequence
 
