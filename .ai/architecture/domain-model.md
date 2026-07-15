@@ -1,6 +1,6 @@
 # Domain Model — GHES Governance Platform
 
-Consolidation artifact assembled from candidate ADRs 0001–0012 and `CONTEXT.md` (2026-07-13). It introduces no new concepts; where this document and an ADR disagree, the ADR is authoritative. Terminology follows `CONTEXT.md` exactly.
+Consolidation artifact assembled from candidate ADRs 0001–0012 and `CONTEXT.md` (2026-07-13), refined by ADR-0013 (2026-07-15). It introduces no new concepts; where this document and an ADR disagree, the ADR is authoritative. Terminology follows `CONTEXT.md` exactly.
 
 ---
 
@@ -86,7 +86,7 @@ Derived Report ──── derives from * Execution Manifests
 1. Merged into the protected governance branch = approved; the engine never validates who approved (ADR-0002).
 2. **Uncertainty never grants privilege** — Unknown never satisfies, violates, excuses, or authorizes anything, including writes (ADR-0008, ADR-0011).
 3. **Explicit over inferred** — authority, roles, relief, standing write authority, and matrix selection are declared, never derived from version/mode/date heuristics (ADR-0005). Deliberate exception: *restrictions* compose mechanically — the effective execution constraint set is the intersection of all applicable constraints, with the most restrictive numeric limit winning — because inference may only ever remove privilege, never grant it (ADR-0011).
-4. At most one active Authoritative Binding per (policy, repository); an official compliance interpretation derives from exactly one. Zero is a normal rollout state producing no official interpretation (neither `Unknown` nor `NotApplicable`); more than one is a configuration error → no enforcement, `Unknown`, high-visibility finding. Enforcement Mode never contributes to determining authority (ADR-0005).
+4. At most one active Authoritative Binding per (policy, repository); an official compliance interpretation derives from exactly one. Zero is a normal rollout state producing no official interpretation (neither `Unknown` nor `NotApplicable`) and no Coverage State — absent intent means there is no intended control set to measure. More than one is a configuration error → no enforcement; each conflicting binding is still evaluated, but only as explanatory evidence, never as an official governance outcome; requirement sets are never synthesized across conflicting policy versions; the pair's official Policy Outcome and Coverage State are both `Unknown`, with a high-visibility finding. Ambiguous intent yields `Unknown` in both dimensions; absent intent yields neither. Enforcement Mode never contributes to determining authority (ADR-0005, ADR-0013).
 5. Observation is universal; evaluation requires scope resolution; enforcement requires evaluation, an Enforce-mode authoritative binding, *and* plan approval or standing authority (ADR-0003, ADR-0011).
 6. `CannotDetermine` never becomes `Value Absent`; undetermined capability never becomes unsupported; unknown strategy is never substituted (ADR-0003, ADR-0007, ADR-0012).
 7. Technical Outcomes are never altered by governance artifacts; interpretation is a separate overlay (ADR-0006).

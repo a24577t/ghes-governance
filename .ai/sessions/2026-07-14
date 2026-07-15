@@ -1,0 +1,199 @@
+# Session Handoff
+
+Created: 2026-07-14
+
+---
+
+# Current Repository State
+
+Refer to:
+
+- `.ai/architecture/STATUS.md`
+- Latest Architecture Baseline
+- Architecture Principles
+- Domain Model
+
+Current milestone:
+
+- Architecture Discovery Phase 1 completed.
+- Candidate ADRs (0001–0012) consolidated and merged.
+- Methodology refinement completed.
+- Preparing to begin **Phase 2 – Vertical Slice Specification**.
+
+---
+
+# Completed This Session
+
+## Methodology Simplification
+
+The architecture methodology was significantly simplified.
+
+Established methodology principles include:
+
+- Every artifact has one obvious responsibility.
+- Every living artifact has one obvious maintainer.
+- Repository is the project's authoritative memory.
+- A prompt either evaluates repository state or changes repository state, never both.
+- Prefer fewer artifacts with clear ownership.
+
+---
+
+## Prompt Responsibilities Finalized
+
+Responsibilities are now:
+
+### Session Bootstrap
+
+Reads repository.
+
+Never changes repository state.
+
+---
+
+### Architecture Consolidation
+
+Produces architectural changes.
+
+Updates architecture artifacts only.
+
+---
+
+### Phase Gate Review
+
+Evaluates readiness.
+
+Produces PASS / PASS WITH CONDITIONS / FAIL.
+
+Never modifies repository artifacts.
+
+---
+
+### Publish Architecture Baseline
+
+Publishes the approved architectural milestone.
+
+Responsible for:
+
+- creating the next immutable Architecture Baseline
+- updating STATUS.md
+- preparing repository state for future Session Bootstrap
+- recommending:
+  - Architecture Version
+  - Repository Version
+  - Git Tag
+  - GitHub Release
+
+Does not perform release actions.
+
+---
+
+## Documentation Simplification
+
+Recommended removal of:
+
+- DECISION_LOG.md
+- QUESTIONS.md
+- ROADMAP.md
+
+Recommended deprecating:
+
+- OPEN_ITEMS.md
+  (unless future phases demonstrate a genuine need)
+
+Recommended retaining:
+
+- STATUS.md
+
+STATUS becomes the repository landing page describing current project state.
+
+---
+
+## Methodology Principles
+
+Refined the methodology principles to emphasize:
+
+- Single Source of Truth
+- Single Responsibility
+- Clear Ownership
+- Evaluate State vs Change State
+- Repository as Project Memory
+- Minimal Documentation
+- Immutable Baselines
+- Explicit Intent
+- Preserve History
+- Simplicity
+
+---
+
+## Session Handoff Concept
+
+Replaced the earlier Session Summary concept.
+
+Session Handoff is now:
+
+- optional
+- temporary
+- non-authoritative
+- consumed by Session Bootstrap when present
+- deleted or replaced after repository catches up
+
+Its purpose is to capture unpublished work only.
+
+---
+
+# Work Not Yet Published
+
+Repository updates still recommended:
+
+- regenerate `publish-architecture-baseline.md`
+- regenerate `phase-gate-review.md`
+- regenerate `session-bootstrap.md`
+- regenerate `architecture-baseline-v1.md`
+  using the updated publication prompt
+- update `STATUS.md`
+- remove deprecated methodology documents
+- update methodology principles in repository
+
+None of these changes have yet been validated by running the prompts against the repository.
+
+---
+
+# Outstanding Decisions
+
+None.
+
+Architecture methodology is considered stable enough to validate through execution.
+
+Future refinements should occur only if prompt execution exposes ambiguity or unnecessary complexity.
+
+---
+
+# Recommended First Task
+
+Begin a new Claude session.
+
+Run:
+
+1. `publish-architecture-baseline.md`
+2. Review the generated:
+   - `architecture-baseline-v1.md`
+   - `STATUS.md`
+3. Validate both artifacts.
+4. Update the repository.
+5. Begin Phase 2 using the new `session-bootstrap.md`.
+
+---
+
+# Notes
+
+A clear separation of responsibilities has now been established.
+
+Repository-centric work belongs in Claude.
+
+Methodology review, architectural governance, and process refinement continue in ChatGPT.
+
+The repository should become increasingly self-describing, reducing dependence on previous conversations.
+
+The long-term objective remains:
+
+> A new AI assistant should be able to understand the project solely by reading the repository.

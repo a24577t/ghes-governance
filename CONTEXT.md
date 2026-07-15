@@ -42,7 +42,7 @@ The closed set fixed by the core engine — Observe, Plan, Enforce — attached 
 The closed set fixed by the core engine — Authoritative or Shadow — declared explicitly on every Policy Binding, never inferred from version, mode, or dates.
 
 **Authoritative Binding**:
-The single active binding per policy and repository that determines the official compliance outcome, remediation planning, enforcement eligibility, and primary audit reporting. Zero means no official compliance interpretation exists; more than one is a configuration error that yields Unknown and a high-visibility finding.
+The single active binding per policy and repository that determines the official compliance outcome, remediation planning, enforcement eligibility, and primary audit reporting. Zero means no official compliance interpretation exists and no Coverage State is computed — absent intent leaves no intended control set to measure. More than one is a configuration error yielding Unknown for both the Policy Outcome and the Coverage State, plus a high-visibility finding; each conflicting binding is still evaluated, but only as explanatory evidence and never as an official governance outcome, and requirement sets are never synthesized across conflicting policy versions (ADR-0013).
 
 **Shadow Binding**:
 A binding evaluated for comparison, pilot analysis, and evidence. It cannot determine the official compliance outcome, produce an executable Remediation Plan, or trigger enforcement.
@@ -194,7 +194,7 @@ The versioned, trusted description of which capabilities each validated GHES ver
 The closed category carried by every NotApplicable requirement: RepositoryCharacteristic, PolicyPrecondition, or PlatformCapabilityUnavailable.
 
 **Coverage State**:
-The closed policy-level result describing how complete the intended control set is — Covered, PartiallyCovered, or Unknown — derived solely by engine-owned aggregation and reported independently of compliance. Uncertainty never counts as coverage.
+The closed policy-level result describing how complete the intended control set is — Covered, PartiallyCovered, or Unknown — derived solely by the engine-owned coverage rule and reported independently of compliance. Uncertainty never counts as coverage.
 _Avoid_: coverage outcome (a single flattened enum)
 
 **Coverage Reason**:

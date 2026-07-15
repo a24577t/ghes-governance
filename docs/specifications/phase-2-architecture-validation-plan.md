@@ -25,6 +25,12 @@ A **read-only governance engine** proven against a **synthetic GHES estate** (no
 
 The phase is delivered as **seven sequenced slices**. Each slice is a thin, demoable, independently testable increment that attaches to a seam the previous slices already exercise. Completion of the full sequence — not of any single slice — is what the Architecture Baseline v1 §17 trigger ("Vertical Slice 1 complete") refers to.
 
+## Terminology
+
+This plan governs the **Phase 2 Architecture Validation Sequence** — the canonical name for the full seven-slice read-only architecture-validation scope. The current implementation slice is **Vertical Slice 1 — Observe-Mode Tracer** (Slice 1 of 7), specified separately in `vertical-slice-1-observe-mode-tracer.md`.
+
+The two names exist because both scopes were previously called "Vertical Slice 1". Architecture Baseline v1 predates the split, is immutable, and is not edited: where it says "Vertical Slice 1" (§10 scope, §17 next-baseline trigger), read **Phase 2 Architecture Validation Sequence**. Where this plan and its slice specifications say "Vertical Slice 1", they mean the Observe-Mode Tracer alone. This is a naming reconciliation only — no architectural decision changed, no ADR is affected, and the authority of Baseline v1 is undisturbed. `STATUS.md` records the same mapping.
+
 ## Slice Sequence
 
 | # | Slice | Delivers | Attaches at | Prerequisites |
@@ -42,7 +48,7 @@ Ordering within the sequence is adjustable where prerequisites allow (2 and 3 ar
 ## Recorded Decisions
 
 1. **ADR-0012 sequencing note.** ADR-0012's POC boundary names both `PredicateEvaluation` and `DesiredStateEvaluation`. Deferring the second strategy to Slice 2 is a *sequencing decision within the phase*, not an architecture change: the strategy-dispatch contract ADR-0012 mandates is fully present from Slice 1, and the second strategy lands in the same registry. No ADR amendment is required or implied.
-2. **Baseline v2 trigger.** Architecture Baseline v1 §17 fires on "Vertical Slice 1 complete." That trigger is hereby pinned to **completion of this plan's full slice sequence** — implementation validates the architecture only when every ADR's POC boundary has run.
+2. **Baseline v2 trigger.** Architecture Baseline v1 §17 fires on "Vertical Slice 1 complete." That trigger is hereby pinned to **completion of the full Phase 2 Architecture Validation Sequence** — implementation validates the architecture only when every ADR's POC boundary has run. It does **not** fire on completion of Vertical Slice 1 — Observe-Mode Tracer (see Terminology).
 3. **Full schemas, degenerate values.** All engine-owned closed sets and the complete finding/evidence schemas ship in Slice 1, populated with degenerate values where the producing capability is deferred (Governance Interpretation always `None`; Coverage Reasons `CapabilityGap`/`GovernanceExclusion` unreachable; plan references absent). Later slices populate fields; they never migrate schemas. (ADR-0006 explicitly permits relief to be "modeled in the schema without being fully implemented.")
 4. **Seams are fixed for the phase.** Two public seams only — the Execution boundary and Report Derivation (ADR-0009 separation) — established in Slice 1 and reused by every later slice. No slice may introduce a lower public seam.
 5. **The engine refuses desired state it cannot faithfully execute.** Before discovery or evaluation begins, the engine validates that every desired-state artifact and every activated semantic feature in the bundle is supported by the running engine release. If any artifact type, schema version, mode, role, or referenced capability cannot be faithfully interpreted, the execution fails before evaluation, emits configuration evidence identifying the unsupported content, and produces no authoritative compliance or coverage results. The rule is whole-bundle: unsupported content is rejected **even when it appears unreferenced**, because the engine cannot reliably prove content irrelevant without understanding its semantics. Silent ignoring or downgrading would infer intent and violate the explicit-intent principle. Accepted consequence: fixture bundles for later slices cannot be run against earlier-slice engines.
@@ -175,6 +181,6 @@ Tests attach only at the two seams; no test imports internal modules. Scenario f
 
 ## Notes
 
-- **STATUS.md discrepancy**: STATUS.md's slice capability list omits Desired-State Evaluation; ADR-0012's POC boundary includes it. ADRs outrank STATUS.md, so the phase includes it — in Slice 2 (see Recorded Decision 1).
+- **STATUS.md discrepancy** — *resolved 2026-07-15*: STATUS.md previously carried a single "Current Vertical Slice" list that conflated the two scopes (it omitted Desired-State Evaluation, which ADR-0012's POC boundary includes, while listing Dry-run Remediation Planning, which Slice 6 delivers). STATUS.md now names both scopes per Terminology: the sequence carries the full capability set — Desired-State Evaluation included, in Slice 2 (see Recorded Decision 1) — and the Observe-Mode Tracer carries only its own. No ADR outranking was required; the lists had different subjects.
 - **Terminology**: implementation and tests use `CONTEXT.md` vocabulary verbatim, including its *Avoid* list (no "drift" as a concept, no "waiver", no "accepted deviation").
 - Slice specifications after Slice 1 are written when their turn comes (each via the normal spec process, referencing this plan); they are not pre-authored here and nothing in this plan is an agent-ready ticket.
