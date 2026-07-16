@@ -7,7 +7,7 @@
 | Date | 2026-07-14 |
 | Derived from | The original Vertical Slice 1 specification draft (2026-07-14), re-scoped by the same-day scope review |
 | Governs | The full architecture-validation phase (Phase 2) as a sequence of implementation slices |
-| Authoritative architecture | Architecture Baseline v1 (`.ai/architecture/architecture-baseline-v1.md`), Architecture Version 1.0.1, ADRs 0001–0013 |
+| Authoritative architecture | Architecture Baseline v1 (`.ai/architecture/architecture-baseline-v1.md`), Architecture Version 1.0.2, ADRs 0001–0014 |
 
 **This document must never be labeled `ready-for-agent` or implemented from directly.** It is the phase-level map: the consolidated definition of what the POC phase demonstrates (the union of the ADR "first vertical slice" / "POC boundary" clauses), decomposed into sequenced slices. The only implementable artifact for the first increment is the separate specification `vertical-slice-1-observe-mode-tracer.md`.
 
@@ -17,7 +17,7 @@
 
 Enterprise platform and governance teams running GitHub Enterprise Server cannot answer, with evidence, the questions their security and audit functions keep asking: *Which repositories comply with our governance policies? Which intended controls are actually applied? Who accepted which risk, and until when? What would remediation change?* Configuration is spread across thousands of brownfield repositories, checking is manual and unrepeatable, and results cannot be traced to the exact policy version, observed state, and time they were true.
 
-The project has a complete, accepted architecture (Architecture Baseline v1, ADRs 0001–0013) — but it is unvalidated by working software. Until the architecture runs end to end, it is a set of promises: the staged pipeline, the closed outcome sets, the compliance-versus-coverage split, the evidence model, and the dry-run planning model have never been exercised together.
+The project has a complete, accepted architecture (Architecture Baseline v1, ADRs 0001–0014) — but it is unvalidated by working software. Until the architecture runs end to end, it is a set of promises: the staged pipeline, the closed outcome sets, the compliance-versus-coverage split, the evidence model, and the dry-run planning model have never been exercised together.
 
 ## Phase Goal
 

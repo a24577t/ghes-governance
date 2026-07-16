@@ -1,6 +1,6 @@
 # Domain Model — GHES Governance Platform
 
-Consolidation artifact assembled from candidate ADRs 0001–0012 and `CONTEXT.md` (2026-07-13), refined by ADR-0013 (2026-07-15). It introduces no new concepts; where this document and an ADR disagree, the ADR is authoritative. Terminology follows `CONTEXT.md` exactly.
+Consolidation artifact assembled from candidate ADRs 0001–0012 and `CONTEXT.md` (2026-07-13), refined by ADR-0013 and ADR-0014 (2026-07-15). It introduces no new concepts; where this document and an ADR disagree, the ADR is authoritative. Terminology follows `CONTEXT.md` exactly.
 
 ---
 
@@ -37,6 +37,7 @@ Evaluation Strategies (`PredicateEvaluation`, `DesiredStateEvaluation`), attribu
 | Simulated Plan | labeled shadow output | Never executable (ADR-0005) |
 | Evidence item | content hash + schema version + sensitivity classification | Append-only (ADR-0009) |
 | Execution Manifest | 1:1 with Execution | Lists every evidence item + hash; tamper-evidence root (ADR-0009) |
+| Execution Digest | 1:1 with Execution Manifest | Versioned root commitment to the Execution's evidence; v1 = canonical content hash of the manifest; recorded outside it; derived, never an independent authority (ADR-0014) |
 | Derived Report | regenerable | Cites source manifests; never authoritative (ADR-0009) |
 
 ---
@@ -49,7 +50,7 @@ Requirement (DesiredStateEvaluation) ──── references 1 centrally managed
 Policy Binding = 1 Policy version × 1 Scope Expression × Mode × Role × effective period
 (policy identifier, repository): ≤ 1 active Authoritative Binding; 0..* Shadow Bindings
 Governance Relief ──── targets (policy id, requirement id, scope-or-repository)
-Execution 1 ──── 1 Execution Manifest; 1 ──── * evidence items; 1 ──── * Findings
+Execution 1 ──── 1 Execution Manifest ──── 1 Execution Digest (committing to it, stored outside it); 1 ──── * evidence items; 1 ──── * Findings
 Finding = (Policy Binding × repository × Requirement) at one Evaluation Timestamp
 Remediation Plan ──── from 1 source Execution; Plan Approval ──── binds 1 plan content hash
 Rollback plan ──── explicitly links to the original execution (ADR-0011)

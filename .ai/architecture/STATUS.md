@@ -1,6 +1,6 @@
 # Project Status
 
-Last Updated: 2026-07-15
+Last Updated: 2026-07-16
 
 ## Current Phase
 
@@ -22,18 +22,18 @@ Architecture Baseline v1 is immutable and predates this split; it is **not** edi
 - [x] Ubiquitous Language (`CONTEXT.md`)
 - [x] Domain Model
 - [x] ADRs 0001–0012 — all **accepted** (2026-07-14)
-- [x] ADR-0013 — refinement, **accepted** (2026-07-15)
+- [x] ADR-0013, ADR-0014 — refinements, **accepted** (2026-07-15)
 - [x] Architecture Principles (12)
 - [x] Phase Gate Review — **PASS WITH CONDITIONS** (2026-07-14)
 - [x] Architecture Baseline v1 published
 
 ## Current Architecture Baseline
 
-`.ai/architecture/architecture-baseline-v1.md` — Baseline v1. The baseline document records Architecture Version 1.0.0; the current Architecture Version is **1.0.1** (see Architecture Refinements Since Baseline v1). Baseline v2 is not published for this refinement.
+`.ai/architecture/architecture-baseline-v1.md` — Baseline v1. The baseline document records Architecture Version 1.0.0; the current Architecture Version is **1.0.2** (see Architecture Refinements Since Baseline v1). Baseline v2 is not published for this refinement.
 
 ## Versions
 
-- Architecture Version: 1.0.1 (Baseline v1 records 1.0.0; see Architecture Refinements Since Baseline v1)
+- Architecture Version: 1.0.2 (Baseline v1 records 1.0.0; see Architecture Refinements Since Baseline v1)
 - Repository Version: v0.1.1
 
 ## Architecture Refinements Since Baseline v1
@@ -44,18 +44,41 @@ No architectural decisions are open. Baseline v1 §13 ("No architectural decisio
 
 Applied downstream: Domain Model invariant 4 and header; `CONTEXT.md` (Authoritative Binding, Coverage State); the slice specification (authority selection, story 14, AC 5, S5, reference bundle); phase plan story 16.
 
-**Architecture Version 1.0.1** — patch. No new capability, no reversal of an accepted decision, no new domain entity, no new closed set, no implementation incompatibility (nothing is built yet); it clarifies a previously under-specified interaction between existing ADRs.
+**ADR-0014 — Execution Digest: a versioned root commitment to an Execution's evidence.** `docs/adr/0014-execution-digest-root-commitment.md`, status **accepted** (2026-07-15). ADR-0009 names "execution digest" among Authoritative Evidence contents but never defines it, and the term appeared nowhere else in the repository — a specification could not supply it, because the term is architectural. ADR-0014 defines the Execution Digest as the deterministic, versioned root commitment to an Execution's evidence; version 1 is the canonical content hash of the Execution Manifest, and is the only supported computation. The digest is recorded outside the manifest (a manifest containing its own hash is self-referential) and verified during evidence validation before Derived Reports are generated; a recomputed/recorded mismatch fails verification as tamper-suspect, with neither value presumed trustworthy. Raised by specification review of Vertical Slice 1 — Observe-Mode Tracer.
+
+Applied downstream: `CONTEXT.md` (Execution Digest); Domain Model (evidence entities, relationships, header); the slice specification (Solution step 7, Execution boundary and Report Derivation seams, stories 23 and 32, digest recording location and verification point, AC 10, S10).
+
+**Architecture Version 1.0.2** — patch, on the same reasoning as 1.0.1. ADR-0013 and ADR-0014 each add no capability, reverse no accepted decision, and create no implementation incompatibility (nothing is built yet). ADR-0014 defines a term ADR-0009 already required rather than introducing a new concept, and its one Domain Model entity row records an architectural fact that was already implied. Both clarify previously under-specified architecture.
 
 **Baseline stays v1.** Baseline v2 is published at the next planned architectural milestone — completion of the Phase 2 Architecture Validation Sequence — not for this clarification. Baselines track project milestones, not every refinement.
 
-**Methodology gaps this review exposed** (recorded, not yet acted on):
+**Methodology backlog — revisit after Phase 2 completes. Do not act on this now.**
 
-1. Baseline §19's version rules are too coarse: they do not distinguish an invariant *clarified* from an invariant *changed*, and read literally would have forced 2.0.0 here. Intended refinement — clarification → patch; behavioral change → minor; conceptual-model change or new invariant → major.
-2. The methodology has no notion of a **Refinement ADR** as distinct from a discovery ADR. The pattern this review established: when specification review exposes a contradiction or gap between accepted ADRs, create a refinement ADR rather than editing accepted ADRs in place — and carry forward navigation from the next baseline, since the accepted ADRs cannot point forward to it.
+Baseline v1 and its §19 are **not** to be modified while the methodology is still being exercised. The proposal below is recorded so the evidence survives; it is deliberately not applied, because Phase 2 will produce more evidence about what the rules should be, and changing the methodology mid-validation would remove the very evidence we are gathering.
+
+*The evidence so far — the same issue, twice in one review:*
+
+1. **ADR-0013** refined an accepted invariant (Domain Model invariant 4) without changing architectural semantics.
+2. **ADR-0014** completed an already-required architectural concept (ADR-0009's undefined "execution digest") without adding new behaviour; the Domain Model gained an entity row because it was **incomplete, not incorrect**.
+
+In both cases Baseline §19 read literally forces a **major** version — because the Domain Model or an invariant was edited — while both are semantically clarifications. Both were classified **patch** (1.0.1, 1.0.2). The root cause: **§19 keys on whether an artifact was edited; it should key on semantic architectural change.**
+
+*Proposed replacement for §19's bump guidance (not applied):*
+
+- **Patch (1.0.x)** — clarification of existing architectural intent; completion of previously implied concepts; contradiction resolution; refinement ADRs that do not change externally observable architectural behaviour.
+- **Minor (1.x.0)** — backward-compatible architectural capability additions.
+- **Major (x.0.0)** — changes to architectural semantics or invariants that would make a **previously conforming implementation non-conforming**.
+
+The major test is the operational one: it is decidable, where "did the Domain Model change?" is merely observable.
+
+*Proposed ADR taxonomy (not applied):*
+
+- **Discovery ADR** — a Phase 1 architectural decision.
+- **Refinement ADR** — a post-baseline clarification discovered during specification or implementation review. When such review exposes a contradiction or gap between accepted ADRs, create a refinement ADR rather than editing accepted ADRs in place; and carry forward navigation from the next baseline, since accepted ADRs cannot point forward to it. ADR-0013 and ADR-0014 are the first two instances of this pattern.
 
 ## Current Objective
 
-Review and approve the specification for Vertical Slice 1 — Observe-Mode Tracer. ADR-0013 is accepted and its downstream updates are applied; specification review resumes.
+Review and approve the specification for Vertical Slice 1 — Observe-Mode Tracer. ADR-0013 and ADR-0014 are accepted and their downstream updates are applied; specification review resumes.
 
 ## Current Validation Sequence
 
@@ -78,7 +101,7 @@ Capabilities:
 - Composite Policy Evaluation
 - Compliance aggregation
 - Coverage aggregation (structure complete; reasons unreachable until Slices 3–4)
-- Evidence (append-only, content-hashed, manifest, execution status)
+- Evidence (append-only, content-hashed, manifest, execution digest, execution status)
 - Derived Reports (from stored evidence only)
 
 No writes.
@@ -94,6 +117,7 @@ Delivered by later slices of the sequence, **not** by this slice: Desired-State 
 
 ## Deferred
 
+- Methodology refinement — architecture versioning by semantic change, and the Discovery/Refinement ADR distinction (evidence and proposal recorded under Architecture Refinements Since Baseline v1; revisit after Phase 2)
 - Event-driven execution
 - Automatic remediation
 - Emergency-suspension path definition

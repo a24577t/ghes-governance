@@ -173,6 +173,10 @@ A regenerable human- or machine-readable summary produced from Evidence, citing 
 **Execution Manifest**:
 The per-Execution record listing every evidence item and its content hash; the tamper-evidence root that Derived Reports reference.
 
+**Execution Digest**:
+The deterministic root commitment to an Execution's Authoritative Evidence: one versioned value per Execution, committing to every published evidence item so that any change beneath it is detectable. Version 1 is the canonical content hash of the Execution Manifest. Recorded outside the manifest it commits to — a manifest containing its own hash is self-referential — and verified during evidence validation before Derived Reports are generated. A recomputed digest that disagrees with the recorded or anchored value fails verification and renders the evidence set tamper-suspect; neither value is presumed trustworthy.
+_Avoid_: treating the digest as an evidence item, or as an authority independent of the evidence it commits to
+
 **Normalized Observed State**:
 The smallest decision-relevant representation of observed configuration stored in Evidence (observed versus expected values), never complete API payloads.
 
