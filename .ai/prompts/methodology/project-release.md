@@ -1,254 +1,129 @@
-# Project Release Prompt
+# Project Release
 
 ## Purpose
 
-A project phase has successfully completed.
+An intentional repository release is being prepared. Your responsibility is to determine whether the repository is ready for release and to produce a **Release Plan** the human architect executes.
 
-The Phase Gate Review has passed.
+This prompt is **evaluation-only**: it determines the release type, verifies the applicable prerequisites and repository consistency, and produces recommendations plus the human release steps. It never creates tags, publishes releases, or modifies repository artifacts.
 
-The Architecture Baseline has been published.
+A release governs the **repository-wide Repository Version** — the latest release tag. Repository Version is distinct from the Architecture Version and the Architecture Baseline, which evolve separately; a release does not change either.
 
-Your responsibility is to determine whether the repository should be released and to recommend all versioning updates required for this milestone.
+## Release Type
 
-This prompt does **not** create releases.
+Determine the release type first — it decides which prerequisites apply. A release may originate from:
 
-It prepares the project for release by ensuring all versioning, documentation, and milestone artifacts remain consistent.
+- a gated project-phase milestone;
+- an approved-specification milestone;
+- an architecture-refinement milestone;
+- a methodology milestone;
+- an implementation milestone;
+- a maintenance or correction release.
 
----
+Verify only the prerequisites applicable to the determined type. Do not invent prerequisites the release type does not require.
 
-# Inputs
+## Preconditions
 
-Review the repository before beginning.
+**Every release requires:**
 
-At minimum review:
+- internally consistent repository state;
+- an intentional, human-authorized release scope.
 
-- `.ai/architecture/STATUS.md`
-- Latest Architecture Baseline
-- `.ai/architecture/domain-model.md`
-- `.ai/architecture/OPEN_ITEMS.md`
-- Phase Gate Review
-- Previous releases (if any)
+**Type-conditional prerequisites — verify only when applicable:**
 
-Also review when available:
+- **Phase completion is claimed** → a successful Phase Gate Review (PASS or PASS WITH CONDITIONS) must exist as a repository artifact.
+- **The milestone requires a new Architecture Baseline** → Baseline Publication must already be complete.
+- **Neither applies** → do not require a Phase Gate or a Baseline.
 
-- RELEASES.md
-- CHANGELOG.md
-- Git tags
-- GitHub Releases
+If an applicable prerequisite is missing, **stop and report** why the repository is not ready for release review.
 
----
+## Inputs
 
-# Responsibilities
+Review only what the release type requires. Prefer **consuming other transitions' proving artifacts** over re-deriving their conclusions.
 
-## 1. Determine Repository Version
+- `.ai/architecture/STATUS.md` (the Status Artifact)
+- The applicable prerequisite record(s): the Phase Gate Review Record and/or the published Architecture Baseline, only when the type requires them
+- Existing Git tags and GitHub Releases
+- `RELEASES.md` / `CHANGELOG.md` (if present)
+- A Repository Continuity Artifact (if present)
 
-Recommend the next repository version using Semantic Versioning.
+Do not repeat a full bootstrap or a full architecture-gate review; consume their results.
 
-Guidelines:
+## Responsibilities
 
-### Major
+### 1. Establish release scope and authorization
 
-Breaking architectural evolution.
+Confirm the release type, the intended scope, and that a human has authorized this release.
 
-Examples:
+### 2. Verify applicable prerequisite records
 
-- Enterprise deployment
-- Multi-instance architecture
-- Major governance redesign
+For the determined type only, confirm the required prerequisite artifacts exist and are consistent (for example, the Phase Gate Review Record for a phase-completion release; the published Baseline for a baseline-milestone release). Do not re-run those reviews.
 
-### Minor
+### 3. Select the Repository Version
 
-New architectural capability.
+Recommend the next Semantic Version, explaining major / minor / patch in terms of **repository evolution**, not architectural evolution. Repository Version is repository-wide; it does not distinguish product from methodology streams.
 
-Examples:
+### 4. Repository Continuity Artifact check (conditional)
 
-- Vertical Slice complete
-- GHES integration
-- AWS deployment
+If a Repository Continuity Artifact exists, verify whether unresolved transient work affects release readiness. Do **not** require one for a clean, stable, fully committed release, and do **not** summarize committed repository history into it — committed history is authoritative repository content, not a continuity aid.
 
-### Patch
+### 5. Tag and GitHub Release recommendation
 
-Editorial improvements.
+Recommend an annotated Git tag whose name matches the selected Repository Version; verify it does not already exist and identify its target commit. When appropriate, recommend a GitHub Release with title, summary, highlights, known limitations, and next milestone.
 
-Examples:
+### 6. Methodology Observations
 
-- Documentation corrections
-- Clarifications
-- Typographical fixes
+Record process improvements discovered during the release. These are not release-readiness findings and do not affect the decision.
 
-Explain why the recommended version is appropriate.
+## Release Postcondition
 
----
+**The release is incomplete until the Git tag, the release metadata, and the Status Artifact all agree on the released Repository Version.** Do not declare the repository bootstrap-safe until all three agree. A tag created before the Status Artifact is reconciled leaves the release **transient and incomplete** until the reconciliation commit is merged.
 
-## 2. Determine Architecture Version
+## Release Plan
 
-Recommend the Architecture Version.
+This prompt is evaluation-only, so it produces the plan; the human architect executes it. Produce the plan with explicit human repository updates — never leave Status reconciliation implicit. The order below **prevents** drift rather than detecting it later:
 
-Architecture Version reflects architectural maturity rather than repository maturity.
+1. Approve the release version and scope.
+2. Update the Status Artifact to the intended Repository Version and next objective.
+3. Commit and merge that release-state update.
+4. Create the annotated tag from the intended commit.
+5. Publish the GitHub Release.
+6. Verify that the tag, the release metadata, and the Status Artifact agree — the repository is bootstrap-safe.
 
-Examples:
+If the project's Git practice creates the tag before the Status update (for example, tagging at merge), the release remains **transient and incomplete** until the reconciliation commit is merged. Do not declare bootstrap-safe until all three agree.
 
-```
-1.0
-1.1
-2.0
-```
+## Release Readiness
 
-Explain any version increment.
+Determine one of: **Ready for Release**, **Ready with Conditions**, **Not Ready**. Explain why.
 
----
+## Deliverables
 
-## 3. Verify Architecture Baseline
-
-Confirm:
-
-- latest baseline published
-- metadata complete
-- supersedes information correct
-- next baseline trigger documented
-
-Identify any deficiencies.
-
----
-
-## 4. Recommend Git Tag
-
-Recommend an annotated Git tag.
-
-Example:
-
-```
-v0.1.0
-```
-
-Include:
-
-- tag name
-- release title
-- release description
-
-Do not create the tag.
-
----
-
-## 5. Recommend GitHub Release
-
-If appropriate, recommend creating a GitHub Release.
-
-Include:
-
-- Release Title
-- Summary
-- Highlights
-- Known Limitations
-- Next Phase
-
-Do not publish the release.
-
----
-
-## 6. Update Release History
-
-If RELEASES.md exists:
-
-Recommend a new release entry.
-
-If it does not exist:
-
-Recommend creating RELEASES.md.
-
-Summarize:
-
-- major accomplishments
-- completed phase
-- architecture version
-- baseline version
-- major ADRs
-- next milestone
-
----
-
-## 7. Verify Repository Status
-
-Confirm:
-
-- STATUS.md reflects the new phase
-- Current Phase updated
-- Previous Phase marked complete
-
-Identify inconsistencies.
-
----
-
-## 8. Verify Documentation
-
-Confirm that:
-
-- Architecture Baseline exists
-- Domain Model is current
-- Architecture Principles are current
-- ADR Index is current
-- Open Items reviewed
-- Session Summary archived
-
-Identify missing artifacts.
-
----
-
-## 9. Release Readiness Assessment
-
-Determine:
-
-- Ready for Release
-- Ready with Conditions
-- Not Ready
-
-Explain the reasoning.
-
----
-
-# Deliverables
-
-Produce:
-
-## Repository Version Recommendation
-
-## Architecture Version Recommendation
-
-## Git Tag Recommendation
-
-## GitHub Release Recommendation
-
-## RELEASES.md Update
-
-## Documentation Review
-
-## Remaining Risks
-
-## Next Milestone
-
----
-
-# Constraints
+- Release type and authorization
+- Applicable prerequisite verification
+- Selected Repository Version
+- Tag and GitHub Release recommendation
+- Repository Continuity Artifact disposition (if any)
+- Release Plan (human execution order)
+- Remaining risks and known limitations
+- Next milestone
+
+## Constraints
 
 Do not:
 
-- create Git tags
-- publish releases
-- modify repository files
-- create ADRs
-- redesign the architecture
+- modify repository files;
+- create Git tags;
+- publish releases;
+- reconcile the Status Artifact yourself — produce the plan; the human executes it;
+- redesign architecture, create ADRs, or recommend new architectural decisions;
+- re-run a full bootstrap or architecture-gate review.
 
-Only review and recommend.
+This prompt verifies release readiness and produces a release plan. It does not evolve the project and does not mutate repository state.
 
----
+## Success Criteria
 
-# Success Criteria
+A successful review:
 
-All project versioning should be internally consistent.
-
-Repository versioning, Architecture Version, Architecture Baseline, Git tags, GitHub Releases, and project documentation should all describe the same milestone.
-
-The project should have a clear transition from one completed phase to the next.
-
-The recommendation should leave the repository ready for an intentional, auditable release.
+- correctly determines the release type and verifies only its applicable prerequisites;
+- selects a coherent repository-wide Repository Version;
+- produces a release plan whose execution leaves the tag, release metadata, and Status Artifact in agreement;
+- leaves no ambiguity about whether the repository is bootstrap-safe after the release.
