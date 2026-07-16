@@ -2,8 +2,8 @@
 
 | Field | Value |
 |---|---|
-| Type | Specification (candidate `ready-for-agent` ticket once reviewed) |
-| Status | Draft for review — **not published, not yet an issue** |
+| Type | Specification (`ready-for-agent` candidate) |
+| Status | Reviewed and **approved — implementation-ready** (2026-07-16); not yet an issue |
 | Date | 2026-07-14 |
 | Parent | `phase-2-architecture-validation-plan.md` (Slice 1 of 7) |
 | Authoritative architecture | Architecture Baseline v1 (Architecture Version 1.0.2), ADRs 0001–0014, `CONTEXT.md`, Domain Model |
