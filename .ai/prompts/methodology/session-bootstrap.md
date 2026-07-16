@@ -1,274 +1,102 @@
-# Session Bootstrap Prompt
+# Session Bootstrap
 
 ## Purpose
 
-You are beginning a new working session in an existing enterprise architecture and software project.
+Begin a new working session by establishing accurate context **from the repository alone**. The repository is the authoritative record; prior chat context is never authoritative and is never required.
 
-Your first responsibility is to understand the current project state before answering questions, recommending changes, creating plans, or modifying files.
+This prompt is **read-only and evaluation-only**: it discovers the repository's authoritative domains, runs verifiable checks over repository state, and produces a Session Context result. It creates, modifies, renames, moves, commits, or deletes nothing.
 
-The repository is the project’s persistent memory.
+## Outcomes
 
-Previous chat history is not authoritative and must not be required to continue the project.
+Bootstrapping has exactly **two** outcomes — no third state:
 
-This prompt is read-only.
+- **Bootstrap Successful** → Context Established; the session may proceed to Working.
+- **Bootstrap Failed** → route to **Remediation**; the session does **not** proceed to Working.
 
-It does not create, modify, rename, move, commit, or delete repository content.
+A single failed check is a Bootstrap Failed. Bootstrap never repairs anything; it routes failures to Remediation.
 
----
+## Establishing Context
 
-# Responsibilities
+Do **not** assume a fixed artifact list. Discover the repository's authoritative domains and establish the authority set from them. Required steps:
 
-You must:
+1. **Discover** the authoritative domains present in the repository.
+2. **Verify** each required domain is internally consistent.
+3. **Build** the authority set from the discovered domains.
+4. **Apply** authority precedence across that set.
+5. **Continue** only if every required domain establishes successfully; otherwise, Bootstrap Failed.
 
-1. Identify the current project phase.
-2. Locate the latest approved Architecture Baseline.
-3. Understand the current architecture at the level necessary for the requested task.
-4. Review current status, open items, and relevant detailed decisions.
-5. Confirm your understanding before beginning substantive work.
+How a repository exposes its domains is repository-specific implementation — directory conventions, repository metadata, a future manifest, or another mechanism. This prompt states the requirement and remains **agnostic to the mechanism**.
 
-Do not redesign the architecture unless the requested task reveals a genuine contradiction or missing architectural decision.
+> *Example (GHES): the discovered authority domains today are **architecture** (`.ai/architecture/`: the Status Artifact, the architecture baseline, domain model, principles, ADRs, `CONTEXT.md`) and **methodology** (`.ai/methodology/`: MADRs, principles, the lifecycle model). Others may appear later. These paths are this repository's instantiation, not a universal assumption.*
 
----
+## Verifiable Preconditions
 
-# Reading Order
+Run these as explicit checks. Each **Passes** or **Fails**, and the results drive the output. Any Failed check is a Bootstrap Failed → Remediation. Do not repair a failing check during bootstrap.
 
-Read repository artifacts in the following order.
+- The Repository Version recorded in the Status Artifact equals the latest release identifier (for GHES, the latest Git tag).
+- The required authority domains are discovered.
+- The required artifacts exist within each domain.
+- The required artifacts carry an accepted status where acceptance is required.
+- Internal references resolve (ADR / MADR / specification / baseline cross-references).
+- Authority precedence is established across the discovered domains.
 
-## 1. Current Project Status
+## Continuity Artifact Handling
 
-Read:
+If the repository holds a **Repository Continuity Artifact** for the state being resumed, read it — it carries the uncommitted in-flight intent needed to resume a transient state. Keep it strictly **subordinate** to authoritative repository state: it may add resumption intent, never override committed state; on any conflict, the repository prevails and the discrepancy is surfaced (MADR-0001 D3). Do not require one for a clean, fully committed, stable state.
 
-```text
-.ai/architecture/STATUS.md
-```
+A **Conversation Continuity Artifact** is out of scope: never consume one, and never treat prior chat context as authoritative.
 
-Use it to determine:
+## Authority Precedence
 
-* current phase;
-* latest Architecture Baseline;
-* architecture version;
-* repository version, when recorded;
-* current objective;
-* next milestone;
-* current blocking conditions or open architectural decisions.
+Within the authority set, accepted decisions are authoritative and derived summaries are subordinate to them: a summary — such as the Status Artifact — never overrides an accepted decision, and the repository prevails over any continuity aid. Historical documents (discovery briefs, session summaries) explain how the architecture evolved but never override current authoritative artifacts. A repository may define its own detailed precedence, which bootstrap applies as discovered.
 
-If `STATUS.md` does not exist or conflicts with the repository, report the inconsistency.
+On conflict: identify it, cite the affected files and sections, apply precedence, and **surface the discrepancy** — never silently choose an interpretation, and never modify anything.
 
-Do not create or repair it during bootstrap.
+## Output — Session Context
 
-## 2. Latest Architecture Baseline
+Produce a Session Context result. Modify nothing.
 
-Locate all files matching:
+### Outcome
 
-```text
-.ai/architecture/architecture-baseline-v*.md
-```
+One of: **Bootstrap Successful** (Context Established) or **Bootstrap Failed** (route to Remediation).
 
-Determine the latest baseline using the baseline version and status recorded inside the documents.
+### Checks
 
-Read only the latest approved or otherwise currently authoritative baseline.
+- Passed checks.
+- Failed checks — each with the artifact and the discrepancy. (Empty on success.)
 
-Do not assume that filename ordering alone establishes authority.
+### Current State
 
-Earlier baselines are historical artifacts. Read them only when:
+- Current project phase.
+- The single authoritative current objective.
+- Discovered authority domains.
+- Repository Version and the latest release identifier.
+- Latest architecture baseline and Architecture Version (when the architecture domain is present).
+- Next milestone.
 
-* the current task concerns architectural evolution;
-* a change-since-baseline comparison is required;
-* the latest baseline explicitly refers the reader to an earlier baseline.
+### Relevant Sources
 
-If no Architecture Baseline exists, report that fact and continue using the remaining authoritative artifacts.
+The specific artifacts consulted.
 
-## 3. Domain and Terminology
+### Notes
 
-Read, when present:
+Only items that affect the current task.
 
-```text
-.ai/architecture/domain-model.md
-.ai/architecture/architecture-principles.md
-CONTEXT.md
-```
-
-Use these documents to understand:
-
-* domain entities and relationships;
-* invariants;
-* architectural principles;
-* approved terminology;
-* terms that must be avoided.
-
-Do not redefine established terminology.
-
-## 4. Current Open Items
-
-Read:
-
-```text
-.ai/architecture/OPEN_ITEMS.md
-```
-
-only if it exists and is identified by `STATUS.md` or the latest baseline as a current authoritative artifact.
-
-Do not treat deferred items as current requirements.
-
-Do not reopen resolved architectural questions.
-
-## 5. Relevant ADRs
-
-Read only the ADRs relevant to the current task.
-
-Use the Architecture Baseline’s ADR index and recommended-reading section to select them.
-
-Read additional ADRs when:
-
-* the current task crosses several architectural domains;
-* the baseline lacks sufficient detail;
-* an apparent contradiction must be investigated.
-
-Do not automatically read every ADR unless the task is a full architecture review.
-
-## 6. Specifications and Implementation Artifacts
-
-When the current phase or requested task involves specification or implementation, read the relevant artifacts after the architectural material.
-
-Examples include:
-
-```text
-specifications/
-docs/specifications/
-src/
-tests/
-```
-
-Use actual repository structure rather than assuming these paths exist.
-
-Architecture remains authoritative over specifications.
-
-Specifications remain authoritative over implementation.
-
----
-
-# Authority Order
-
-Unless a more specific repository rule states otherwise, use this authority order:
-
-1. Accepted ADRs
-2. Latest approved Architecture Baseline
-3. Domain Model
-4. Architecture Principles
-5. Approved specifications
-6. Proposed ADRs
-7. Current `STATUS.md`
-8. Historical discovery documents
-9. Session summaries and prior chat context
-
-When artifacts conflict:
-
-* identify the conflict;
-* cite the affected files and sections;
-* do not silently choose a new interpretation;
-* do not modify files during bootstrap.
-
-If the repository explicitly defines a different authority order, follow the repository-defined order and report it.
-
----
-
-# Historical Documents
-
-Treat documents such as the Architecture Discovery Brief and session summaries as historical context.
-
-They explain how the architecture evolved but do not override newer architectural artifacts.
-
-Do not rewrite history during bootstrap.
-
----
-
-# Architectural Conduct
-
-Preserve established architecture unless evidence requires reconsideration.
-
-When reviewing a task:
-
-* prefer clarification over redesign;
-* identify contradictions rather than silently resolving them;
-* distinguish architecture questions from specification and implementation questions;
-* recommend the smallest change that resolves a genuine gap;
-* identify affected ADRs when a new architectural decision is required.
-
-Do not invent missing decisions.
-
-Do not infer authority.
-
-Uncertainty does not grant permission to proceed with destructive or architecture-changing work.
-
----
-
-# Output
-
-After reading the necessary artifacts, provide a concise **Session Context Report** containing:
-
-## Current State
-
-* Current project phase
-* Current objective
-* Latest Architecture Baseline
-* Architecture version
-* Repository version, when recorded
-* Next milestone
-
-## Relevant Architecture
-
-Summarize only the architectural concepts relevant to the current task.
-
-Do not reproduce the complete baseline.
-
-## Relevant Sources
-
-List the specific files and ADRs consulted.
-
-## Open or Blocking Items
-
-List only items that affect the current task.
-
-## Readiness
-
-State one of:
-
-* `Ready to Proceed`
-* `Ready with Conditions`
-* `Not Ready`
-
-Explain any conditions or blockers briefly.
-
----
-
-# Constraints
+## Constraints
 
 Do not:
 
-* modify repository files;
-* create documents;
-* update `STATUS.md`;
-* publish an Architecture Baseline;
-* create or change ADRs;
-* create specifications;
-* create tasks or tickets;
-* commit or push changes;
-* create tags or releases;
-* rely on previous chat history as authoritative context.
+- modify, create, rename, move, commit, or delete repository content;
+- repair inconsistencies — route them to Remediation;
+- rely on prior chat context, or consume any Conversation Continuity Artifact, as authoritative;
+- perform consolidation, phase-gate review, remediation, planning, or any other transition.
 
-This prompt exists only to establish accurate working context for the new session.
+Bootstrap establishes context and the two-outcome readiness only.
 
----
+## Success Criteria
 
-# Success Criteria
-
-The bootstrap is successful when:
-
-* the current phase and objective are correctly identified;
-* the latest authoritative baseline is correctly selected;
-* only task-relevant detailed artifacts are read;
-* terminology and architectural authority are preserved;
-* conflicts and missing information are surfaced;
-* no repository content is changed;
-* the session can continue without relying on earlier chat history.
-
+- Authoritative domains are **discovered**, not assumed — including every accepted domain the repository exposes.
+- Every precondition is an **explicit, verifiable check**.
+- A failed check yields **Bootstrap Failed → Remediation**, never a partial context that proceeds to Working.
+- A future contributor can tell, from the output alone, whether the session reached Context Established or Bootstrap Failed.
+- No repository content is changed.
