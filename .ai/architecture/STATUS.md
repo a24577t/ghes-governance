@@ -4,7 +4,7 @@ Last Updated: 2026-07-16
 
 ## Current Phase
 
-Phase 2 — Architecture Validation Sequence (specification stage)
+Phase 2 — Architecture Validation Sequence (Vertical Slice 1 specification approved; sequence not complete)
 
 ## Terminology
 
@@ -26,6 +26,8 @@ Architecture Baseline v1 is immutable and predates this split; it is **not** edi
 - [x] Architecture Principles (12)
 - [x] Phase Gate Review — **PASS WITH CONDITIONS** (2026-07-14)
 - [x] Architecture Baseline v1 published
+- [x] Vertical Slice 1 — Observe-Mode Tracer specification — reviewed and **approved / implementation-ready** (2026-07-16)
+- [x] AI-Assisted Engineering Methodology architecture — **accepted** (MADR-0001, MADR-0002, principles P1–P7, lifecycle model, glossary; `.ai/methodology/`), released **v0.3.0**. Project-independent and agent-neutral; does not change the GHES architecture.
 
 ## Current Architecture Baseline
 
@@ -34,7 +36,15 @@ Architecture Baseline v1 is immutable and predates this split; it is **not** edi
 ## Versions
 
 - Architecture Version: 1.0.2 (Baseline v1 records 1.0.0; see Architecture Refinements Since Baseline v1)
-- Repository Version: v0.1.1
+- Repository Version: v0.3.0
+
+**Repository Version** tracks the latest repository-wide release tag. It is a single generic field: it does not distinguish product from methodology release streams. Architectural maturity is tracked separately by **Architecture Version** (1.0.2) and **Architecture Baseline** (v1); a repository release does not change either, and Baseline v1 / Architecture Version 1.0.2 remain current. Independent release streams, if ever needed, require explicit version fields or separate repositories — they are not inferred through this field.
+
+### Repository releases
+
+- **v0.3.0** — accepted AI-Assisted Engineering Methodology architecture (`.ai/methodology/`). No change to the GHES architecture.
+- **v0.2.0** — architecture refinements ADR-0013 and ADR-0014, and the Vertical Slice 1 — Observe-Mode Tracer specification review.
+- **v0.1.1 / v0.1.0** — earlier project releases (Baseline v1 era).
 
 ## Architecture Refinements Since Baseline v1
 
@@ -52,7 +62,7 @@ Applied downstream: `CONTEXT.md` (Execution Digest); Domain Model (evidence enti
 
 **Baseline stays v1.** Baseline v2 is published at the next planned architectural milestone — completion of the Phase 2 Architecture Validation Sequence — not for this clarification. Baselines track project milestones, not every refinement.
 
-**Methodology backlog — revisit after Phase 2 completes. Do not act on this now.**
+**Architecture Versioning Rules — Deferred (revisit after Phase 2 completes; do not act on this now).**
 
 Baseline v1 and its §19 are **not** to be modified while the methodology is still being exercised. The proposal below is recorded so the evidence survives; it is deliberately not applied, because Phase 2 will produce more evidence about what the rules should be, and changing the methodology mid-validation would remove the very evidence we are gathering.
 
@@ -78,7 +88,9 @@ The major test is the operational one: it is decidable, where "did the Domain Mo
 
 ## Current Objective
 
-Review and approve the specification for Vertical Slice 1 — Observe-Mode Tracer. ADR-0013 and ADR-0014 are accepted and their downstream updates are applied; specification review resumes.
+**Immediate (methodology track):** validate the existing methodology prompts (`.ai/prompts/methodology/` and the working skills) against the accepted methodology architecture (`.ai/methodology/`), treating each prompt as an implementation of the accepted model. This is temporary work that does **not** advance or complete the Phase 2 Architecture Validation Sequence; only a genuine architectural deficiency reopens the accepted methodology.
+
+**Next (product track):** the Vertical Slice 1 — Observe-Mode Tracer specification is approved and implementation-ready. Resume GHES product work — generate implementation tickets, then implement and review Slice 1.
 
 ## Current Validation Sequence
 
@@ -86,7 +98,7 @@ Phase 2 validates the read-only governance architecture through seven sequenced 
 
 ## Current Implementation Slice
 
-**Vertical Slice 1 — Observe-Mode Tracer** (Slice 1 of 7). Specification: `docs/specifications/vertical-slice-1-observe-mode-tracer.md` — **Draft for review**.
+**Vertical Slice 1 — Observe-Mode Tracer** (Slice 1 of 7). Specification: `docs/specifications/vertical-slice-1-observe-mode-tracer.md` — **approved, implementation-ready** (`ready-for-agent` candidate).
 
 The thinnest complete execution path through every architectural layer, run manually against a synthetic GHES estate.
 
@@ -110,14 +122,14 @@ Delivered by later slices of the sequence, **not** by this slice: Desired-State 
 
 ## Next Milestones
 
-1. Grill and approve Vertical Slice 1 — Observe-Mode Tracer
-2. Generate implementation tickets
-3. Implement and review Vertical Slice 1 — Observe-Mode Tracer
-4. Continue the Phase 2 Architecture Validation Sequence
+1. **(immediate, methodology track)** Validate the existing methodology prompts against the accepted methodology architecture — temporary; does not advance Phase 2.
+2. Generate Vertical Slice 1 — Observe-Mode Tracer implementation tickets.
+3. Implement and review Vertical Slice 1 — Observe-Mode Tracer.
+4. Continue the Phase 2 Architecture Validation Sequence.
 
 ## Deferred
 
-- Methodology refinement — architecture versioning by semantic change, and the Discovery/Refinement ADR distinction (evidence and proposal recorded under Architecture Refinements Since Baseline v1; revisit after Phase 2)
+- Architecture-versioning rules — versioning by semantic change, and the Discovery/Refinement ADR distinction (evidence and proposal recorded under Architecture Refinements Since Baseline v1; revisit after Phase 2)
 - Event-driven execution
 - Automatic remediation
 - Emergency-suspension path definition
