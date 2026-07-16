@@ -43,11 +43,19 @@ Review only the artifacts necessary to evaluate the completed phase.
 
 ---
 
+# Precondition
+
+This transition (Phase Active → Phase Gate) runs only when its precondition holds: the phase's **Milestone-Complete** predicate is true — every work item in the phase has reached its completed state.
+
+Verify this from repository state **before** any qualitative evaluation. If a work item is not complete, the precondition is unmet: report which work items are incomplete and **stop — issue no readiness decision**. An incomplete milestone is a fail-loud precondition failure, not a FAIL readiness outcome. The gate evaluates a *completed* milestone's architectural readiness; it does not substitute for milestone completion.
+
+---
+
 # Responsibilities
 
 ## 1. Verify Phase Objectives
 
-Determine whether the objectives of the completed phase have been achieved.
+The Precondition above has already established that the phase's **work items** are complete; this step documents the **objective** outcomes for the Phase Gate Review Record. An objective that is genuinely *Not Completed* because a work item is unfinished is a precondition failure — return to the Precondition and stop.
 
 Classify each objective as:
 
@@ -135,14 +143,15 @@ Publication is appropriate if a new architectural milestone has been reached.
 
 ### PASS WITH CONDITIONS
 
-The next phase may begin.
+A **qualified Pass**. The lifecycle transition remains binary: PASS and PASS WITH CONDITIONS are both a Pass and make the phase eligible to proceed to Baseline Publication; only FAIL routes to Remediation. PASS WITH CONDITIONS is a human-facing classification, not a third lifecycle branch.
 
-Non-blocking issues must be documented and tracked.
+The conditions are structured metadata attached to the Pass result. They travel forward as **required inputs to Baseline Publication**. Because this is a Pass, every condition is **non-blocking**: publication always proceeds. A condition that would block publication is a blocking issue, and therefore a **FAIL** — not a Pass with Conditions.
 
 Every condition must identify:
+
+- the condition
 - affected repository artifact(s)
-- recommended owner
-- recommended resolution timing (before publication, during publication, after publication, or next phase)
+- recommended resolution timing (during publication, after publication, or next phase)
 
 ### FAIL
 
@@ -171,14 +180,12 @@ Explain why this is the correct next step.
 
 ## 6. Recommended Next Action
 
-Exactly one of:
+The Phase Gate has exactly two lifecycle outcomes, so recommend exactly one:
 
-Publish Architecture Baseline
-Continue Architecture Refinement
-Begin Specification
-Continue Specification Review
-Begin Implementation
-Produce Project Handof
+- **Pass** (including Pass with Conditions) → proceed to **Baseline Publication** (`publish-architecture-baseline.md`), carrying any conditions forward.
+- **Fail** → **Remediation**: the current phase continues until the blocking issues are resolved.
+
+Do not recommend work-item or session transitions here (specification, implementation, and the like). Those follow later, from the next Phase Active state, and are outside this gate's scope.
 
 ## 7. Methodology Observations
 
@@ -191,7 +198,9 @@ That keeps methodology evolution separate from architecture evaluation.
 
 # Output
 
-Produce a Phase Gate Review containing:
+**Produce the Phase Gate Review Record** — the proving artifact for the Phase Gate state. This prompt *produces* the record as its output; it does **not** commit or publish it. The human architect reviews the record and commits it (commit / PR / merge), at which point the repository proves the Phase Gate state. **Produce the proving artifact; do not publish it** — evaluation stays separate from repository mutation.
+
+The Phase Gate Review Record contains:
 
 ## Current Phase
 
