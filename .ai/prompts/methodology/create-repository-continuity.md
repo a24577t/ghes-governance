@@ -1,211 +1,101 @@
-# Session Handoff Prompt
+# Create Repository Continuity Artifact
 
-# Purpose
+## Purpose
 
-Determine the latest published Architecture Baseline.
+A session is ending while uncommitted, in-flight project work remains. Produce a **Repository Continuity Artifact** — the temporary bridge that lets the next session resume that work.
 
-The Project Handoff captures **all project work completed since that baseline that has not yet become authoritative repository state**.
+The Repository Continuity Artifact preserves **only uncommitted, in-flight project intent** that is not yet represented by authoritative repository artifacts. It **points at** authoritative artifacts for context; it never restates them, and it is **never** an alternate representation of project history.
 
-Its purpose is to bridge the gap between the current published Architecture Baseline and the next published Architecture Baseline.
+It bridges repository state across an **interrupted transient session** — not architectural history. It is a temporary working artifact: not an architecture document, not a specification, not a design document, not a permanent project record.
 
-It is a temporary working artifact.
+## Precondition
 
-It is not an architecture document.
+Produce a Repository Continuity Artifact **only when a session ends while uncommitted project work remains**. A clean session close — the repository internally consistent, all durable work committed, the Status Artifact accurate — emits **no** Repository Continuity Artifact.
 
-It is not a specification.
+## What it may and may not contain
 
-It is not a design document.
+**May contain:**
 
-It is not a permanent project record.
+- unpublished work in progress;
+- outstanding architectural or implementation decisions;
+- unresolved questions;
+- the intended next activity;
+- references to authoritative repository artifacts that provide necessary context.
 
-Once all unpublished work has been incorporated into authoritative repository artifacts, the Project Handoff should be deleted or replaced.
+**Must not contain** — each of these is committed, authoritative content that belongs elsewhere; point to it, never restate it:
 
----
+- a summary of completed work;
+- a summary of repository state, or a second representation of STATUS;
+- a reconciliation of changes since the previous baseline;
+- a release summary;
+- an alternate project history.
 
-# Inputs
+## Inputs
 
-Determine the latest published Architecture Baseline.
+- STATUS.md (reference only)
+- The latest Architecture Baseline (reference only)
+- Previous Repository Continuity Artifact (if one exists)
+- The uncommitted, in-flight work of the ending session
 
-Review repository work completed since that baseline.
+Do not reread architecture already captured by authoritative artifacts unless required to describe the uncommitted work.
 
-When available review:
+## Responsibilities
 
-- STATUS.md
-- Latest Architecture Baseline
-- Previous Project Handoff
-- Newly created or modified repository artifacts
-- Relevant discussion from working sessions
+### 1. Identify Uncommitted Work
 
-Do not reread architecture already captured by the latest Architecture Baseline unless required to understand unpublished work.
+List work that has been done or discussed but has **not** yet become repository state — pending document updates, prompt revisions, ADR reviews, specifications, or implementation work. Actionable, uncommitted items only.
 
----
+### 2. Identify Outstanding Decisions
 
-# Responsibilities
+List architectural or methodological decisions and unresolved questions that remain open. For each: the decision required and the recommended next step. If none remain, state `None`.
 
-## 1. Summarize Completed Work
+### 3. Recommend the Next Activity
 
-Briefly summarize the significant work completed during the session.
+Identify the single best starting point for the next session to resume the in-flight work.
 
-Do not restate architecture already captured in:
+## Output
 
-- Architecture Baselines
-- ADRs
-- Domain Model
-- STATUS
+Produce, for **human review and commit** — the human authorizes what becomes repository state; this prompt does not commit automatically:
 
-Reference those artifacts rather than duplicating them.
+`.ai/working/repository-continuity.md`
 
----
+Containing:
 
-## 2. Identify Unpublished Work
+- **Created** — date
+- **Resume Context** — references (pointers, not summaries) to the authoritative artifacts the next session needs: STATUS, the latest baseline, relevant ADRs
+- **Work Not Yet Committed** — the uncommitted in-flight work
+- **Outstanding Decisions** — `None`, or the open decisions and questions
+- **Recommended Next Activity** — one starting point
+- **Notes** — optional; only what helps the next session resume
 
-List work that has been discussed but has **not** yet become repository state.
+## Lifecycle
 
-Examples include:
+The Repository Continuity Artifact is a temporary, single-use bridge:
 
-- pending document updates
-- pending prompt revisions
-- pending ADR reviews
-- pending specifications
-- pending implementation work
+1. **Created** when a session ends with uncommitted in-flight work.
+2. **Consumed once** by the next Session Bootstrap, which resumes that work.
+3. **Retired** as soon as its content becomes authoritative repository state (committed) or is intentionally discarded — at which point it is removed and no longer participates in any future bootstrap.
 
-Only include actionable items.
+It bridges a single interrupted session; it does not accumulate, persist across resumptions, or become an enduring project artifact. A resuming session that is itself interrupted retires the consumed artifact and emits a fresh one.
 
----
+It is never authoritative over Architecture Baselines, ADRs, the Domain Model, Architecture Principles, or STATUS.
 
-## 3. Identify Outstanding Decisions
-
-List architectural or methodological decisions that remain unresolved.
-
-For each item indicate:
-
-- decision required
-- recommended next step
-
-If no decisions remain, explicitly state:
-
-> None
-
----
-
-## 4. Recommend the Next Session
-
-Identify the single best starting point for the next working session.
-
-Examples:
-
-- Review generated Architecture Baseline
-- Begin Vertical Slice Specification
-- Review Specification Draft
-- Continue Architecture Consolidation
-
-Recommend only one primary starting point.
-
----
-
-## 5. Repository State
-
-Summarize the repository state.
-
-Include:
-
-- Current Phase
-- Latest Architecture Baseline
-- Architecture Version
-- Repository Version (if known)
-
-Do not duplicate STATUS.
-
-Reference it.
-
----
-
-# Output
-
-Publish:
-
-```
-.ai/working/project-handoff.md
-```
-
-The document should contain:
-
-# Session Handoff
-
-## Created
-
-Date
-
-## Current Repository State
-
-Reference STATUS.
-
-## Completed Since Last Baseline
-
-Concise summary.
-
-## Work Not Yet Published
-
-Outstanding repository updates.
-
-## Outstanding Decisions
-
-None
-
-or
-
-list of remaining decisions.
-
-## Recommended First Task
-
-One recommended starting point.
-
-## Notes
-
-Optional observations that may help the next session.
-
----
-
-# Constraints
+## Constraints
 
 Do not:
 
-- rewrite architecture
-- summarize ADRs
-- duplicate the Architecture Baseline
-- duplicate STATUS
-- redesign the project
-- create implementation tasks
-- invent future work
+- restate or summarize committed work, accepted decisions, released architecture, or repository state — point at the authoritative artifacts instead;
+- duplicate STATUS, the Architecture Baseline, or ADRs;
+- reconcile changes since the previous baseline, or produce a release summary;
+- rewrite or redesign architecture;
+- create implementation tasks or invent future work;
+- commit the artifact automatically — produce it for human review and commit.
 
-The Session Handoff exists only to bridge unfinished work between sessions.
+The Repository Continuity Artifact exists only to bridge uncommitted, in-flight work between sessions.
 
----
+## Success Criteria
 
-# Lifecycle
-
-The Session Handoff is temporary.
-
-Session Bootstrap should read it only if it exists.
-
-Once its contents have been incorporated into authoritative repository artifacts, it should be deleted or replaced by a newer handoff.
-
-It is never authoritative over:
-
-- Architecture Baselines
-- ADRs
-- Domain Model
-- Architecture Principles
-- STATUS
-
----
-
-# Success Criteria
-
-A future Session Bootstrap should be able to read this document in under two minutes and immediately understand:
-
-- what was completed;
-- what remains unpublished;
-- where work should resume.
-
-The Session Handoff should never become a permanent architecture artifact.
+- The artifact contains only uncommitted, in-flight intent and pointers to authoritative artifacts — never a summary of committed history or state.
+- A future Session Bootstrap can read it quickly and know what remains uncommitted, which decisions are open, and where to resume.
+- Its lifecycle is explicit: created on interruption, consumed once, retired when its content becomes authoritative or is discarded.
+- It never becomes a permanent or authoritative project artifact.
