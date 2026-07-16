@@ -2,7 +2,7 @@
 
 ## Purpose
 
-A major project phase has completed.
+Evaluate whether the repository has reached a stable architectural milestone suitable for advancing to the next stage.
 
 Your responsibility is to determine whether the project is ready to advance to the next phase.
 
@@ -129,11 +129,20 @@ Architecture remains internally consistent.
 
 No blocking issues remain.
 
+Architecture is ready to advance.
+
+Publication is appropriate if a new architectural milestone has been reached.
+
 ### PASS WITH CONDITIONS
 
 The next phase may begin.
 
 Non-blocking issues must be documented and tracked.
+
+Every condition must identify:
+- affected repository artifact(s)
+- recommended owner
+- recommended resolution timing (before publication, during publication, after publication, or next phase)
 
 ### FAIL
 
@@ -160,6 +169,24 @@ Examples:
 
 Explain why this is the correct next step.
 
+## 6. Recommended Next Action
+
+Exactly one of:
+
+Publish Architecture Baseline
+Continue Architecture Refinement
+Begin Specification
+Continue Specification Review
+Begin Implementation
+Produce Project Handof
+
+## 7. Methodology Observations
+
+Capture improvements to the project's engineering process.
+
+These observations are not architectural issues and must not affect the readiness decision.
+
+That keeps methodology evolution separate from architecture evaluation.
 ---
 
 # Output
@@ -219,6 +246,8 @@ Do not:
 - recommend Git tags or releases
 
 This prompt evaluates the repository.
+
+Do not recommend changes solely because a better design is possible. Evaluate only whether the repository satisfies the current architecture.
 
 It never changes repository state.
 
