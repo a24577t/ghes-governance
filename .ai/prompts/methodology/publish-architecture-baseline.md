@@ -56,7 +56,7 @@ Also review when available:
 
 - Previous Architecture Baseline
 - Architecture Discovery Brief (historical only)
-- Session Handoff (only when unpublished work exists)
+- Repository Continuity Artifact (only when unpublished work exists)
 
 Review only the artifacts necessary to publish the completed architectural milestone.
 
