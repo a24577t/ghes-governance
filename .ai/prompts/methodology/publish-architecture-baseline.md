@@ -32,7 +32,7 @@ It never:
 Execute this prompt only after:
 
 - Architecture Consolidation is complete.
-- Phase Gate Review returned **PASS** or **PASS WITH CONDITIONS**.
+- A **Phase Gate Review Record** exists and returned **PASS** or **PASS WITH CONDITIONS**.
 - Architectural decisions have been accepted.
 
 If these conditions are not satisfied, stop and report that the repository is not ready for publication.
@@ -50,7 +50,7 @@ At minimum review:
 - `.ai/architecture/architecture-principles.md`
 - `CONTEXT.md`
 - Relevant ADRs
-- Phase Gate Review
+- Phase Gate Review Record
 
 Also review when available:
 
@@ -98,27 +98,15 @@ Corrections are published in the next baseline.
 
 # Responsibilities
 
-## 0. Validate Repository State
+## 0. Consume the Phase Gate Review Record
 
-Before publishing, verify:
+Publication **consumes** the Phase Gate Review Record as its proving artifact; it does not re-perform the gate. Verify:
 
-- STATUS.md exists.
-- The latest Architecture Baseline (if any) is internally consistent.
-- Referenced ADRs exist.
-- Required architecture artifacts exist.
-- Repository navigation is valid.
-  - Repository navigation resolves correctly.
-  - Referenced documents exist.
-  - Referenced Architecture Baselines exist.
-  - Referenced ADRs exist.
-  - Referenced specifications (when applicable) exist.
+- the Phase Gate Review Record exists and returned PASS or PASS WITH CONDITIONS;
+- required architecture artifacts and references still exist and resolve;
+- **no new inconsistency has been introduced since** the Phase Gate Review Record was produced.
 
-If inconsistencies are discovered:
-
-- report them;
-- stop publication.
-
-Do not repair repository state during publication.
+Do not re-audit architectural integrity — the gate already established it. If the record is missing, or a new inconsistency is found, report it and stop publication. Do not repair repository state during publication.
 
 ## 1. Publish the Architecture
 
@@ -129,6 +117,8 @@ The Architecture Baseline should summarize the architecture without replacing th
 Reference ADRs.
 
 Do not reproduce ADR content.
+
+**Consolidate refinements (MADR-0002).** The new baseline consolidates **every accepted refinement since the previous published baseline** into a single immutable snapshot. State this explicitly in the baseline — list the refinements consolidated and the Architecture Version they cumulatively produced — so that MADR-0002's append-only-then-consolidate evolution is directly observable. The previous baseline is never edited; this baseline supersedes it.
 
 Capture:
 
@@ -142,6 +132,7 @@ Capture:
 - Current Scope
 - Deferred Scope
 - ADR Index
+- Consolidated Refinements Since Previous Baseline
 - Recommended Reading
 - Next Baseline Trigger
 
@@ -157,9 +148,9 @@ Do not introduce:
 - new principles
 - new requirements
 
-If contradictions are discovered:
+The Phase Gate Review Record already established architectural integrity; do not re-audit it. If a **new** contradiction — one introduced since the record was produced — is discovered:
 
-- report them
+- report it
 - identify impacted ADRs
 - stop publication
 
@@ -169,20 +160,18 @@ Do not resolve architectural contradictions during publication.
 
 ## 3. Publish Repository State
 
-Update `STATUS.md` to reflect the newly published architectural milestone.
-
-Update only:
+Update `STATUS.md` to reflect the newly published architectural milestone. Update only the **architecture-side** state:
 
 - Completed Phase
 - Current Phase
 - Current Architecture Baseline
+- Baseline Version
 - Architecture Version
-- Repository Version (when changed)
 - Next Milestone
 
-STATUS.md should remain concise and represent the current repository state.
+Do **not** update Repository Version, and do not touch Git tags or releases — those belong exclusively to Project Release, which reconciles them afterward.
 
-Do not add architectural narrative to STATUS.md; it is a concise project status document, not an architecture document.
+STATUS.md should remain concise and represent the current repository state. Do not add architectural narrative to STATUS.md; it is a concise project status document, not an architecture document.
 
 ---
 
@@ -203,70 +192,11 @@ The repository should become the authoritative project memory.
 
 ---
 
-## 5. Repository Publication Recommendation
+## 5. Architecture Version
 
-Determine whether the completed milestone should result in a repository release.
+Determine the new **Architecture Version** for this baseline and record it in `STATUS.md` (Responsibility #3) and the baseline metadata. Explain the version choice.
 
-Recommend:
-
-### Architecture Version
-
-Recommend the next Architecture Version.
-These are recommendations only.
-
-Do not modify repository version metadata outside STATUS.
-
-Examples:
-
-- 1.0
-- 1.1
-- 2.0
-
-Explain the recommendation.
-
----
-
-### Repository Version
-
-Recommend the repository version using Semantic Versioning.
-
-Examples:
-
-- v0.1.0
-- v0.2.0
-- v1.0.0
-
-Explain the recommendation.
-
----
-
-### Git Tag
-
-If appropriate recommend:
-
-- Annotated Git Tag
-- Tag Name
-
-Example:
-
-```
-v0.1.0
-```
-
-Do not create the tag.
-
----
-
-### GitHub Release
-
-If appropriate recommend:
-
-- Release Title
-- Release Summary
-
-Do not publish the release.
-
-Provide recommendations only.
+Architecture Version is owned by Baseline Publication. **Repository Version, Git tags, and GitHub Releases are not** — they belong exclusively to Project Release, which runs afterward and consumes this published state. Do not recommend or produce them here.
 
 ---
 
@@ -291,7 +221,7 @@ Every Architecture Baseline should contain:
 15. What This Baseline Is
 16. What This Baseline Is Not
 17. Next Baseline Trigger
-18. Changes Since Previous Baseline (when applicable)
+18. Consolidated Refinements and Changes Since Previous Baseline (when applicable)
 
 ---
 
@@ -337,13 +267,12 @@ Do not:
 - create specifications
 - generate implementation details
 - create implementation tasks
-- modify architectural history
-- create Git tags
-- publish GitHub Releases
+- modify architectural history or edit any published baseline
+- recommend or produce a Repository Version, a Git tag, or a GitHub Release (those are owned by Project Release)
 
 This prompt publishes architecture.
 
-It does not evolve architecture.
+It does not evolve architecture, and it does not perform repository releases.
 
 ---
 
@@ -351,20 +280,13 @@ It does not evolve architecture.
 
 Publish:
 
-`.ai/architecture/architecture-baseline-v<next>.md`
+`.ai/architecture/architecture-baseline-v<next>.md` — the immutable baseline, consolidating all accepted refinements since the previous baseline.
 
-Update:
+Update the architecture-side of:
 
-`.ai/architecture/STATUS.md`
+`.ai/architecture/STATUS.md` — Completed/Current Phase, Current Architecture Baseline, Baseline Version, Architecture Version, Next Milestone.
 
-Provide:
-
-- Architecture Version Recommendation
-- Repository Version Recommendation
-- Git Tag Recommendation
-- GitHub Release Recommendation
-
-Do not perform repository release actions.
+Leave the repository in a state Project Release can consume. Do not produce a Repository Version, Git tag, or GitHub Release — those are owned by Project Release.
 
 ---
 
@@ -376,7 +298,7 @@ Successful publication means:
 - STATUS accurately reflects the newly published milestone;
 - repository navigation is correct;
 - the repository is ready for future Session Bootstrap;
-- repository version recommendations are complete;
+- the published state is ready for Project Release to consume (Baseline Publication produces no Repository Version, tag, or release);
 - the repository fully represents the approved architectural state without relying on previous chat history.
 
 The repository should become the authoritative memory of the project.
