@@ -108,6 +108,12 @@ Every transition that returns the repository to a **stable** state carries one s
 
 > *Example (GHES): a release that tagged a new repository version without reconciling the Status Artifact's recorded version violated this postcondition and produced state drift.*
 
+## Status Artifact: last-stable-state semantics
+
+The Status Artifact reflects the **last stable state**. It is accurate as of the most recent stable state and is sufficient for bootstrap *at* a stable state. During an in-flight transition — between stable states — it continues to show the last stable state; it is not updated mid-transition.
+
+The in-flight position (what is mid-transition, and what remains to reach the next stable state) is carried by the **Repository Continuity Artifact**. A bootstrapping session therefore reads both: the Status Artifact for the last stable state, and the Repository Continuity Artifact for any in-flight work. The Status Artifact is not stale during a transition — it is the stable-state view by design, and bridging the transient interval is the continuity artifact's role.
+
 ## Failure and remediation paths
 
 Three remediation entry points: **Bootstrap Failed** (inconsistent repository), **Phase Gate Fail**, and **Release/Status mismatch**. Each routes through a Remediation excursion whose destination is the interrupted state once its blocking preconditions are restored.
