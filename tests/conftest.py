@@ -43,3 +43,33 @@ def unknown_scope_bundle() -> Path:
 @pytest.fixture
 def unknown_scope_estate() -> Path:
     return FIXTURES / "unknown-scope" / "estate"
+
+
+@pytest.fixture
+def combinator_divergent_bundle() -> Path:
+    return FIXTURES / "combinator-divergent" / "bundle"
+
+
+@pytest.fixture
+def combinator_divergent_estate() -> Path:
+    return FIXTURES / "combinator-divergent" / "estate"
+
+
+@pytest.fixture
+def all_false_unknown_bundle() -> Path:
+    return FIXTURES / "combinator-all-false-unknown" / "bundle"
+
+
+@pytest.fixture
+def all_false_unknown_estate() -> Path:
+    return FIXTURES / "combinator-all-false-unknown" / "estate"
+
+
+@pytest.fixture
+def not_unknown_bundle() -> Path:
+    return FIXTURES / "combinator-not-unknown" / "bundle"
+
+
+@pytest.fixture
+def not_unknown_estate() -> Path:
+    return FIXTURES / "combinator-not-unknown" / "estate"

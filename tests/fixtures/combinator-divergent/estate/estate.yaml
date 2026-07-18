@@ -1,0 +1,18 @@
+enterprise: acme
+ghes_version: "3.13"
+organizations:
+  - octo-org
+repositories:
+  # 'visibility' is undeterminable (Cannot Determine), but the binding scope is an `any`
+  # combinator whose 'organization' operand is determined TRUE. A determined operand forces
+  # the `any` result, so the Cannot-Determine operand is not decision-relevant.
+  - id: octo-org/service-d
+    organization: octo-org
+    name: service-d
+    archived: false
+    fork: false
+    ghes_version: "3.13"
+    undeterminable:
+      - visibility
+    settings:
+      secret_scanning: enabled

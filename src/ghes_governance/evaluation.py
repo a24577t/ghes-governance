@@ -3,10 +3,10 @@
 Internal engine logic behind the Execution boundary seam: select the single active
 authoritative Observe binding for a (policy, repository) pair via three-result scope
 resolution, evaluate its composite policy through PredicateEvaluation, and aggregate the
-engine-owned Policy Outcome and Coverage State. Deliberately minimal — scope is a single
-``equals`` under the three-result contract (scope combinators and the divergent-cell
-truth table are later increments), predicates are a single ``equals`` (full operators and
-aggregation precedence are T3), and authority conflict is T4. Broader inputs fail loud.
+engine-owned Policy Outcome and Coverage State. Deliberately minimal — scope is an
+``equals`` leaf or an ``any``/``all``/``not`` combinator under three-valued (Kleene) logic,
+predicates are a single ``equals`` (full operators and aggregation precedence are T3), and
+authority conflict is T4. Broader inputs fail loud.
 """
 
 from __future__ import annotations
@@ -77,12 +77,34 @@ def select_authoritative_binding(
 
 
 def resolve_applicability(scope: Any, repo: dict[str, Any]) -> ApplicabilityOutcome:
-    """Resolve a single-``equals`` scope condition under the three-result contract.
+    """Resolve a scope expression to Applicable / NotApplicable / Unknown.
 
-    Cannot Determine on the required attribute → Unknown; a present value that matches →
-    Applicable; a present-but-different or absent value → NotApplicable. Scope combinators
-    and the divergent-cell truth table are later increments.
+    A scope expression is a single-key dict: an ``equals`` leaf, which consults the
+    three-result attribute provider, or an ``any`` / ``all`` / ``not`` combinator over
+    nested scope expressions combined under three-valued (Kleene) logic. Cannot Determine
+    on a decision-relevant operand → Unknown.
     """
+    operator = _expression_operator(scope, "scope expression")
+    if operator == "equals":
+        return _resolve_equals_scope(scope, repo)
+    if operator == "any":
+        return _resolve_any(scope["any"], repo)
+    if operator == "all":
+        return _resolve_all(scope["all"], repo)
+    if operator == "not":
+        return _resolve_not(scope["not"], repo)
+    raise NotImplementedError(f"unsupported scope operator {operator!r}")
+
+
+def _expression_operator(expression: Any, what: str) -> str:
+    if not isinstance(expression, dict) or len(expression) != 1:
+        raise BundleError(f"malformed {what}: {expression!r}")
+    return next(iter(expression))
+
+
+def _resolve_equals_scope(scope: Any, repo: dict[str, Any]) -> ApplicabilityOutcome:
+    """The ``equals`` leaf: Cannot Determine → Unknown; present-and-matching → Applicable;
+    present-but-different or absent → NotApplicable."""
     condition = _single_equals(scope, "attribute", "scope expression")
     result, value = _provider_lookup(repo, condition["attribute"])
     if result is ProviderResult.CANNOT_DETERMINE:
@@ -90,6 +112,54 @@ def resolve_applicability(scope: Any, repo: dict[str, Any]) -> ApplicabilityOutc
     if result is ProviderResult.VALUE_PRESENT and value == condition["value"]:
         return ApplicabilityOutcome.APPLICABLE
     return ApplicabilityOutcome.NOT_APPLICABLE
+
+
+def _resolve_any(operands: Any, repo: dict[str, Any]) -> ApplicabilityOutcome:
+    """Three-valued OR over nested scope expressions.
+
+    Applicable if any operand is Applicable (a determined-TRUE operand forces the result);
+    otherwise Unknown if any operand is Unknown; otherwise NotApplicable.
+    """
+    if not isinstance(operands, list) or not operands:
+        raise BundleError(f"malformed 'any' scope expression: {operands!r}")
+    outcomes = [resolve_applicability(operand, repo) for operand in operands]
+    if ApplicabilityOutcome.APPLICABLE in outcomes:
+        return ApplicabilityOutcome.APPLICABLE
+    if ApplicabilityOutcome.UNKNOWN in outcomes:
+        return ApplicabilityOutcome.UNKNOWN
+    return ApplicabilityOutcome.NOT_APPLICABLE
+
+
+def _resolve_all(operands: Any, repo: dict[str, Any]) -> ApplicabilityOutcome:
+    """Three-valued AND over nested scope expressions.
+
+    NotApplicable if any operand is NotApplicable (a determined-FALSE operand forces the
+    result); otherwise Unknown if any operand is Unknown; otherwise Applicable.
+    """
+    if not isinstance(operands, list) or not operands:
+        raise BundleError(f"malformed 'all' scope expression: {operands!r}")
+    outcomes = [resolve_applicability(operand, repo) for operand in operands]
+    if ApplicabilityOutcome.NOT_APPLICABLE in outcomes:
+        return ApplicabilityOutcome.NOT_APPLICABLE
+    if ApplicabilityOutcome.UNKNOWN in outcomes:
+        return ApplicabilityOutcome.UNKNOWN
+    return ApplicabilityOutcome.APPLICABLE
+
+
+def _resolve_not(operand: Any, repo: dict[str, Any]) -> ApplicabilityOutcome:
+    """Three-valued negation of exactly one nested scope expression.
+
+    Applicable ↔ NotApplicable; Unknown negates to Unknown — negation cannot resolve an
+    undeterminable operand. ``not`` takes exactly one operand (a single scope expression).
+    """
+    if not isinstance(operand, dict) or len(operand) != 1:
+        raise BundleError(f"malformed 'not' scope expression: {operand!r}")
+    outcome = resolve_applicability(operand, repo)
+    if outcome is ApplicabilityOutcome.APPLICABLE:
+        return ApplicabilityOutcome.NOT_APPLICABLE
+    if outcome is ApplicabilityOutcome.NOT_APPLICABLE:
+        return ApplicabilityOutcome.APPLICABLE
+    return ApplicabilityOutcome.UNKNOWN
 
 
 def evaluate_policy(policy: dict[str, Any], repo: dict[str, Any]) -> dict[str, Any]:

@@ -1,0 +1,17 @@
+policy: policy.baseline
+policy_version: 1
+evaluation_role: Authoritative
+enforcement_mode: Observe
+effective_start: "2025-01-01T00:00:00Z"
+effective_end: "2027-01-01T00:00:00Z"
+# `any` (logical OR) over two scope conditions: the first operand is Cannot Determine
+# (visibility undeterminable → Unknown), the second is determined TRUE (organization ==
+# octo-org). A determined TRUE operand forces `any` to Applicable regardless of the Unknown.
+scope:
+  any:
+    - equals:
+        attribute: visibility
+        value: private
+    - equals:
+        attribute: organization
+        value: octo-org
