@@ -1,10 +1,11 @@
-"""The Report Derivation seam (ticket T0).
+"""The Report Derivation seam.
 
-Reports are derived exclusively from stored Evidence and require no Execution. This
-seam verifies before it derives: it recomputes the Execution Digest from the manifest
-and compares it to the sidecar, then verifies every item hash against the manifest,
-failing loud on either mismatch (see :mod:`ghes_governance.store`). T0 exercises the
-successful verification path; the adversarial tamper fixtures are ticket T7.
+Reports are derived exclusively from stored Evidence and require no Execution. This seam
+verifies before it derives: it recomputes the Execution Digest from the manifest and
+compares it to the sidecar, then verifies every item hash against the manifest, failing
+loud on either mismatch (see :mod:`ghes_governance.store`). It reports Compliance and
+Coverage as independent dimensions for governed pairs, and surfaces pairs with no
+authoritative binding in their own ungoverned category, inventing no outcome for them.
 """
 
 from __future__ import annotations
@@ -35,19 +36,37 @@ def derive_reports(
 
     Verifies before deriving: recomputes the Execution Digest from the manifest and
     compares it to the sidecar, then verifies each item's content hash against the
-    manifest, trusting neither value on mismatch. Derives a machine-readable report and
-    a human-readable summary, each citing the manifest; an ungoverned Execution yields
-    no Policy Outcome or Coverage State. When ``report_dir`` is given, both reports are
-    also written there. Requires no Execution — it reads only committed Evidence. Raises
-    ``DigestMismatchError`` or ``ItemHashMismatchError`` on a verification mismatch, and
-    ``EvidenceUnreadableError`` if the manifest or digest is missing, malformed, or
-    unreadable.
+    manifest, trusting neither value on mismatch. Derives a machine-readable report and a
+    human-readable summary, each citing the manifest; Compliance and Coverage are reported
+    as independent dimensions for governed pairs, and pairs with no authoritative binding
+    are surfaced as their own ungoverned category. When ``report_dir`` is given, both
+    reports are also written there. Requires no Execution — it reads only committed
+    Evidence. Raises ``DigestMismatchError`` or ``ItemHashMismatchError`` on a verification
+    mismatch, and ``EvidenceUnreadableError`` if the manifest or digest is unreadable.
     """
     manifest, items = read_verified_execution(store_root, execution_id)
 
     provenance = items["binding_provenance"]["payload"]["pairs"]
     status = items["execution_status"]["payload"]
+    results = items["policy_results"]["payload"]["results"]
     ungoverned = [pair for pair in provenance if not pair.get("governed", False)]
+
+    compliance_outcomes = [
+        {
+            "policy_id": r["policy_id"],
+            "repository_id": r["repository_id"],
+            "policy_outcome": r["policy_outcome"],
+        }
+        for r in results
+    ]
+    coverage_states = [
+        {
+            "policy_id": r["policy_id"],
+            "repository_id": r["repository_id"],
+            "coverage_state": r["coverage_state"],
+        }
+        for r in results
+    ]
 
     json_report: dict[str, Any] = {
         "schema_version": REPORT_SCHEMA_VERSION,
@@ -56,10 +75,8 @@ def derive_reports(
         "engine_version": manifest["engine_version"],
         "execution_status": status["status"],
         "accounting": status["accounting"],
-        # Compliance and Coverage are reported as independent dimensions; an ungoverned
-        # execution produces neither, and invents no outcome for a pair with no binding.
-        "compliance": {"outcomes": []},
-        "coverage": {"states": []},
+        "compliance": {"outcomes": compliance_outcomes},
+        "coverage": {"states": coverage_states},
         "ungoverned_pairs": ungoverned,
         "citations": {
             "execution_digest": content_hash(manifest),
@@ -91,21 +108,30 @@ def _render_markdown(report: dict[str, Any]) -> str:
         "",
         "## Compliance and Coverage",
         "",
-        "Compliance and Coverage are independent dimensions. This ungoverned execution",
-        "produces no Policy Outcome and no Coverage State — absent an authoritative",
-        "binding there is no intended control set to measure.",
-        "",
-        f"## Ungoverned pairs ({len(report['ungoverned_pairs'])})",
+        "Compliance and Coverage are independent dimensions and are never flattened.",
         "",
     ]
+    coverage_by_pair = {
+        (c["policy_id"], c["repository_id"]): c["coverage_state"]
+        for c in report["coverage"]["states"]
+    }
+    outcomes = report["compliance"]["outcomes"]
+    if outcomes:
+        for o in outcomes:
+            coverage = coverage_by_pair.get((o["policy_id"], o["repository_id"]), "—")
+            lines.append(
+                f"- policy `{o['policy_id']}` × repository `{o['repository_id']}`: "
+                f"Compliance {o['policy_outcome']} · Coverage {coverage}"
+            )
+    else:
+        lines.append("No governed pair produced a Policy Outcome or Coverage State.")
+
+    lines += ["", f"## Ungoverned pairs ({len(report['ungoverned_pairs'])})", ""]
     for pair in report["ungoverned_pairs"]:
         lines.append(f"- policy `{pair['policy_id']}` × repository `{pair['repository_id']}`")
-    lines += [
-        "",
-        "## Evidence citations",
-        "",
-        f"- Execution digest: `{report['citations']['execution_digest']}`",
-    ]
+
+    lines += ["", "## Evidence citations", ""]
+    lines.append(f"- Execution digest: `{report['citations']['execution_digest']}`")
     for entry in report["citations"]["manifest_items"]:
         lines.append(f"- `{entry['name']}` sha256 `{entry['sha256']}`")
     lines.append("")

@@ -1,11 +1,11 @@
-"""The Execution boundary seam (ticket T0), ungoverned path.
+"""The Execution boundary seam.
 
 One entry point takes an injected Evaluation Timestamp and execution identifier (the
-engine never reads a wall clock) and produces, for an estate whose repositories match
-no authoritative binding: an Inventory of every discovered repository, per-pair binding
-provenance recording zero authoritative bindings, an Execution Status of Complete, an
-Execution Manifest, and an external Execution Digest. No scope evaluation, predicate
-evaluation, or aggregation occurs — those arrive in later tickets.
+engine never reads a wall clock) and produces, for a synthetic estate: an Inventory of
+every discovered repository, per-pair binding provenance, per-requirement findings and an
+aggregated Policy Outcome / Coverage State for governed pairs, an Execution Status, an
+Execution Manifest, and an external Execution Digest. A (policy, repository) pair with no
+active authoritative binding is ungoverned — no outcome is invented for it.
 """
 
 from __future__ import annotations
@@ -18,12 +18,15 @@ from . import ENGINE_VERSION
 from .bundle import load_bundle, load_estate
 from .enums import ExecutionStatus
 from .errors import BundleError
+from .evaluation import evaluate_policy, select_authoritative_binding
 from .model import (
     binding_provenance_payload,
     evidence_item,
     execution_status_payload,
+    findings_payload,
     inventory_payload,
     manifest_header,
+    policy_results_payload,
 )
 from .store import write_execution
 
@@ -53,55 +56,82 @@ def run_execution(
     store_root: str | Path,
     engine_version: str = ENGINE_VERSION,
 ) -> ExecutionResult:
-    """Execute the ungoverned Observe-mode path — the Execution boundary seam.
+    """Run an Execution and write its Evidence — the Execution boundary seam.
 
-    Inventories every discovered repository unconditionally, records per-pair binding
-    provenance (zero authoritative bindings), and writes append-only Evidence, the
-    Execution Manifest, and the external Execution Digest under
-    ``store_root/<execution_id>/``; returns an ``ExecutionResult`` with status Complete.
-    The Evaluation Timestamp and execution identifier are injected — no wall clock is
-    read. Raises ``BundleError`` if the bundle contains an authoritative binding
-    (governed evaluation is a later ticket) or if a policy or repository lacks its id.
+    Inventories every discovered repository unconditionally; for each (policy, repository)
+    pair selects the single active authoritative Observe binding and, when one exists,
+    evaluates the composite policy to per-requirement findings and an aggregated Policy
+    Outcome and Coverage State; a pair with no binding is recorded as ungoverned with no
+    invented outcome. Writes append-only Evidence, the Execution Manifest, and the external
+    Execution Digest under ``store_root/<execution_id>/`` and returns an ``ExecutionResult``
+    with status Complete. The Evaluation Timestamp and execution identifier are injected —
+    no wall clock is read. Raises ``BundleError`` if a policy or repository lacks its id.
     """
     bundle = load_bundle(bundle_path)
     estate = load_estate(estate_path)
-
-    authoritative = [b for b in bundle["bindings"] if b.get("evaluation_role") == "Authoritative"]
-    if authoritative:
-        raise BundleError(
-            "ticket T0 runs only ungoverned executions; authoritative bindings require T1+"
-        )
 
     repositories = estate["repositories"]
     inventory = inventory_payload([_inventory_record(repo) for repo in repositories])
 
     pairs: list[dict[str, Any]] = []
+    findings: list[dict[str, Any]] = []
+    results: list[dict[str, Any]] = []
+    evaluated = 0
+
     for policy in bundle["policies"]:
         policy_id = policy.get("id")
         if policy_id is None:
             raise BundleError("bundle policy is missing 'id'")
         for repo in repositories:
+            binding = select_authoritative_binding(
+                bundle["bindings"], policy, repo, evaluation_timestamp
+            )
+            if binding is None:
+                pairs.append(
+                    {
+                        "policy_id": policy_id,
+                        "repository_id": repo["id"],
+                        "authoritative_binding_count": 0,
+                        "governed": False,
+                    }
+                )
+                continue
             pairs.append(
                 {
                     "policy_id": policy_id,
                     "repository_id": repo["id"],
-                    "authoritative_binding_count": 0,
-                    "governed": False,
+                    "authoritative_binding_count": 1,
+                    "governed": True,
                 }
             )
-    provenance = binding_provenance_payload(pairs)
+            evaluation = evaluate_policy(policy, repo)
+            findings.extend(evaluation["findings"])
+            results.append(
+                {
+                    "policy_id": policy_id,
+                    "repository_id": repo["id"],
+                    "policy_outcome": evaluation["policy_outcome"],
+                    "coverage_state": evaluation["coverage_state"],
+                }
+            )
+            evaluated += 1
 
     status = execution_status_payload(
         ExecutionStatus.COMPLETE,
         discovered=len(repositories),
-        evaluated=0,
+        evaluated=evaluated,
         unknown=0,
     )
 
+    provenance = binding_provenance_payload(pairs)
+    finding_evidence = findings_payload(findings)
+    result_evidence = policy_results_payload(results)
     items = [
         ("binding-provenance.json", evidence_item("binding_provenance", execution_id, provenance)),
         ("execution-status.json", evidence_item("execution_status", execution_id, status)),
+        ("findings.json", evidence_item("findings", execution_id, finding_evidence)),
         ("inventory.json", evidence_item("inventory", execution_id, inventory)),
+        ("policy-results.json", evidence_item("policy_results", execution_id, result_evidence)),
     ]
     header = manifest_header(execution_id, evaluation_scope, evaluation_timestamp, engine_version)
     exec_dir = write_execution(store_root, execution_id, header, items)

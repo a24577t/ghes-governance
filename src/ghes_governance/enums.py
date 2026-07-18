@@ -1,24 +1,20 @@
-"""Engine-owned closed sets produced by the evidence spine (ticket T0).
+"""Engine-owned closed sets.
 
-Only the closed sets the ungoverned execution and the evidence spine actually produce
-are defined here. Governance closed sets (Technical Outcome, Policy Outcome, Coverage
-State, Enforcement Mode, Evaluation Role, and so on) are introduced complete — with
-degenerate values — by the ticket that first produces them (T1), not here. No artifact
-outside the engine may extend these sets (CONTEXT.md).
+The evidence-spine sets (``ExecutionStatus``, ``SensitivityClassification``) shipped with
+T0 and remain ``str, Enum`` — they are stable artifact-contract values, migrated to
+``StrEnum`` only through a behaviour-preserving adoption ticket (Python Coding Standard
+§7). The governance closed sets introduced with the first governed evaluation (T1) use
+``StrEnum`` and ship complete; several values are only partly reachable in this slice. No
+artifact outside the engine may extend these sets (CONTEXT.md).
 """
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import Enum, StrEnum
 
 
 class ExecutionStatus(str, Enum):
-    """Closed execution-level completeness result recorded in Evidence.
-
-    Reflects completion of observation, not the presence of governance findings.
-    The ungoverned tracer completes observation of its declared scope, so it reports
-    COMPLETE.
-    """
+    """Closed execution-level completeness result recorded in Evidence."""
 
     COMPLETE = "Complete"
     COMPLETE_WITH_GAPS = "CompleteWithGaps"
@@ -26,13 +22,68 @@ class ExecutionStatus(str, Enum):
 
 
 class SensitivityClassification(str, Enum):
-    """Closed label carried by every evidence and log record.
-
-    Constant ``PUBLIC`` in this synthetic slice; the closed set exists so the redaction
-    model is present before real data is.
-    """
+    """Closed label carried by every evidence and log record (constant Public here)."""
 
     PUBLIC = "Public"
     INTERNAL = "Internal"
     CONFIDENTIAL = "Confidential"
     RESTRICTED = "Restricted"
+
+
+class EnforcementMode(StrEnum):
+    """Closed set attached to a Policy Binding. This slice exercises Observe only."""
+
+    OBSERVE = "Observe"
+    PLAN = "Plan"
+    ENFORCE = "Enforce"
+
+
+class EvaluationRole(StrEnum):
+    """Closed set declared on every Policy Binding. This slice exercises Authoritative."""
+
+    AUTHORITATIVE = "Authoritative"
+    SHADOW = "Shadow"
+
+
+class TechnicalOutcome(StrEnum):
+    """Closed result of technical evaluation of a Requirement — never altered by relief."""
+
+    COMPLIANT = "Compliant"
+    NON_COMPLIANT = "NonCompliant"
+    UNKNOWN = "Unknown"
+    NOT_EVALUATED = "NotEvaluated"
+
+
+class GovernanceInterpretation(StrEnum):
+    """Closed governance overlay on a Technical Outcome (constant None in this slice)."""
+
+    NONE = "None"
+    EXCEPTION = "Exception"
+    EXCLUSION = "Exclusion"
+
+
+class RequirementOutcome(StrEnum):
+    """Closed interpreted result from Technical Outcome plus Governance Interpretation."""
+
+    COMPLIANT = "Compliant"
+    NON_COMPLIANT = "NonCompliant"
+    EXCEPTED = "Excepted"
+    EXCLUDED = "Excluded"
+    UNKNOWN = "Unknown"
+
+
+class PolicyOutcome(StrEnum):
+    """Closed policy-level result aggregated deterministically from Requirement Outcomes."""
+
+    COMPLIANT = "Compliant"
+    COMPLIANT_WITH_EXCEPTIONS = "CompliantWithExceptions"
+    NON_COMPLIANT = "NonCompliant"
+    UNKNOWN = "Unknown"
+
+
+class CoverageState(StrEnum):
+    """Closed policy-level result describing how complete the intended control set is."""
+
+    COVERED = "Covered"
+    PARTIALLY_COVERED = "PartiallyCovered"
+    UNKNOWN = "Unknown"

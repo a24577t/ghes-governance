@@ -23,3 +23,13 @@ def ungoverned_bundle() -> Path:
 @pytest.fixture
 def ungoverned_estate() -> Path:
     return FIXTURES / "ungoverned" / "estate"
+
+
+@pytest.fixture
+def governed_bundle() -> Path:
+    return FIXTURES / "governed" / "bundle"
+
+
+@pytest.fixture
+def governed_estate() -> Path:
+    return FIXTURES / "governed" / "estate"

@@ -1,10 +1,9 @@
-"""Evidence-spine data shapes produced by ticket T0.
+"""Evidence data shapes.
 
 These builders construct the plain-dict content that flows through the integrity
-contract. They deliberately hold only the evidence types the ungoverned execution
-produces — Inventory, binding provenance, and Execution Status — plus the Execution
-Manifest header. The finding schema and governance closed sets are introduced,
-complete-with-degenerate-values, by the ticket that first produces findings (T1).
+contract: Inventory, binding provenance, Execution Status, per-requirement findings, and
+per-pair policy results, plus the Execution Manifest header. Findings and policy results
+were introduced with the first governed evaluation (T1).
 """
 
 from __future__ import annotations
@@ -80,3 +79,17 @@ def execution_status_payload(
             "unknown": unknown,
         },
     }
+
+
+def findings_payload(findings: list[dict[str, Any]]) -> dict[str, Any]:
+    """Per-requirement findings for governed pairs, sorted for deterministic evidence."""
+    return {
+        "findings": sorted(
+            findings, key=lambda f: (f["policy_id"], f["repository_id"], f["requirement_id"])
+        )
+    }
+
+
+def policy_results_payload(results: list[dict[str, Any]]) -> dict[str, Any]:
+    """Per governed (policy, repository) pair: aggregated Policy Outcome and Coverage State."""
+    return {"results": sorted(results, key=lambda r: (r["policy_id"], r["repository_id"]))}
