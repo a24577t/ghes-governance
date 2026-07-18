@@ -87,3 +87,23 @@ class CoverageState(StrEnum):
     COVERED = "Covered"
     PARTIALLY_COVERED = "PartiallyCovered"
     UNKNOWN = "Unknown"
+
+
+class ProviderResult(StrEnum):
+    """Closed result set of an attribute lookup — Cannot Determine is distinct.
+
+    Cannot Determine is never converted into Value Absent: a required attribute that
+    cannot be determined makes applicability Unknown (ADR-0003).
+    """
+
+    VALUE_PRESENT = "ValuePresent"
+    VALUE_ABSENT = "ValueAbsent"
+    CANNOT_DETERMINE = "CannotDetermine"
+
+
+class ApplicabilityOutcome(StrEnum):
+    """Closed applicability result for scope resolution and per-requirement applicability."""
+
+    APPLICABLE = "Applicable"
+    NOT_APPLICABLE = "NotApplicable"
+    UNKNOWN = "Unknown"
