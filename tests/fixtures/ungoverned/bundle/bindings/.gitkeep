@@ -1,0 +1,2 @@
+# No Policy Bindings in the ungoverned fixture: every (policy, repository) pair has
+# zero authoritative bindings, so every pair is ungoverned by construction.
