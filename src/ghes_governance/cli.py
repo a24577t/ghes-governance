@@ -32,7 +32,9 @@ def main(argv: list[str] | None = None) -> int:
     run_p.add_argument("--store", required=True)
     run_p.add_argument("--execution-id", required=True)
     run_p.add_argument("--timestamp", required=True, help="injected Evaluation Timestamp")
-    run_p.add_argument("--scope", default="enterprise", help="e.g. enterprise or organization:octo-org")
+    run_p.add_argument(
+        "--scope", default="enterprise", help="e.g. enterprise or organization:octo-org"
+    )
 
     rep_p = sub.add_parser("report", help="Derive reports from stored Evidence")
     rep_p.add_argument("--store", required=True)

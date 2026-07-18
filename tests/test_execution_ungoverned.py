@@ -1,8 +1,9 @@
-"""AC 4 / Scenario S4 — the ungoverned execution, plus the successful verification path.
+"""AC 4 / Scenario S4 — the ungoverned execution.
 
-Behavior is exercised only through the two public seams. ``read_verified_execution``
-performs the T0 verification (digest before item hashes); a clean store verifies, which
-is the successful path T0 demonstrates.
+Behavior is exercised through the two public seams, run_execution and derive_reports.
+Report Derivation verifies stored evidence (digest before item hashes) before it
+derives, so a clean store deriving successfully demonstrates the successful
+verification path.
 """
 
 from __future__ import annotations
@@ -12,7 +13,6 @@ from _boundary import EXECUTION_ID, SCOPE, TIMESTAMP
 from ghes_governance.enums import ExecutionStatus
 from ghes_governance.execution import run_execution
 from ghes_governance.reporting import derive_reports
-from ghes_governance.store import read_verified_execution
 
 
 def test_ungoverned_execution_completes_with_verified_evidence(
@@ -30,22 +30,19 @@ def test_ungoverned_execution_completes_with_verified_evidence(
     )
     assert result.status is ExecutionStatus.COMPLETE
 
-    # Successful verification path: a clean store verifies (digest then item hashes).
-    manifest, items = read_verified_execution(store, EXECUTION_ID)
-
-    # Every discovered repository is entered into the Inventory unconditionally.
-    repos = items["inventory"]["payload"]["repositories"]
-    assert {r["id"] for r in repos} == {"octo-org/service-a", "octo-org/service-b"}
-
-    # Each (policy, repository) pair records zero authoritative bindings and is ungoverned.
-    pairs = items["binding_provenance"]["payload"]["pairs"]
-    assert pairs
-    assert all(p["governed"] is False and p["authoritative_binding_count"] == 0 for p in pairs)
+    # Report Derivation verifies the evidence (digest before item hashes) before it
+    # derives; deriving without raising is the successful verification path.
+    report = derive_reports(store_root=store, execution_id=EXECUTION_ID).json_report
 
     # Observation of the declared scope completed: Complete, nothing evaluated.
-    status = items["execution_status"]["payload"]
-    assert status["status"] == "Complete"
-    assert status["accounting"] == {"discovered": 2, "evaluated": 0, "unknown": 0}
+    assert report["execution_status"] == "Complete"
+    assert report["accounting"] == {"discovered": 2, "evaluated": 0, "unknown": 0}
+
+    # Every discovered repository is surfaced, and every (policy, repository) pair
+    # records zero authoritative bindings and is ungoverned.
+    ungoverned = report["ungoverned_pairs"]
+    assert {p["repository_id"] for p in ungoverned} == {"octo-org/service-a", "octo-org/service-b"}
+    assert all(p["governed"] is False and p["authoritative_binding_count"] == 0 for p in ungoverned)
 
 
 def test_ungoverned_reports_invent_no_governed_outcome(

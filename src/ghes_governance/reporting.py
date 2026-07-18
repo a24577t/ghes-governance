@@ -31,6 +31,18 @@ def derive_reports(
     execution_id: str,
     report_dir: str | Path | None = None,
 ) -> ReportBundle:
+    """Derive reports from stored Evidence — the Report Derivation seam.
+
+    Verifies before deriving: recomputes the Execution Digest from the manifest and
+    compares it to the sidecar, then verifies each item's content hash against the
+    manifest, trusting neither value on mismatch. Derives a machine-readable report and
+    a human-readable summary, each citing the manifest; an ungoverned Execution yields
+    no Policy Outcome or Coverage State. When ``report_dir`` is given, both reports are
+    also written there. Requires no Execution — it reads only committed Evidence. Raises
+    ``DigestMismatchError`` or ``ItemHashMismatchError`` on a verification mismatch, and
+    ``EvidenceUnreadableError`` if the manifest or digest is missing, malformed, or
+    unreadable.
+    """
     manifest, items = read_verified_execution(store_root, execution_id)
 
     provenance = items["binding_provenance"]["payload"]["pairs"]

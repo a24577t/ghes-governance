@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any
 
 from .canonical import canonical_bytes, content_hash
-from .errors import DigestMismatchError, ItemHashMismatchError
+from .errors import DigestMismatchError, EvidenceUnreadableError, ItemHashMismatchError
 
 EVIDENCE_DIR = "evidence"
 MANIFEST_NAME = "manifest.json"
@@ -70,8 +70,13 @@ def read_verified_execution(
     content no longer matches the manifest. Verification always precedes derivation.
     """
     exec_dir = execution_dir(store_root, execution_id)
-    manifest = _load_json(exec_dir / MANIFEST_NAME)
-    sidecar = _load_json(exec_dir / DIGEST_NAME)
+    try:
+        manifest = _load_json(exec_dir / MANIFEST_NAME)
+        sidecar = _load_json(exec_dir / DIGEST_NAME)
+    except (OSError, json.JSONDecodeError, UnicodeDecodeError) as exc:
+        raise EvidenceUnreadableError(
+            f"could not read the Execution Manifest or Digest for execution {execution_id!r}"
+        ) from exc
 
     recomputed = content_hash(manifest)
     if recomputed != sidecar.get("digest"):

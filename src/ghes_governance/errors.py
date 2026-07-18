@@ -36,3 +36,13 @@ class ItemHashMismatchError(TamperSuspectError):
     def __init__(self, item_name: str) -> None:
         self.item_name = item_name
         super().__init__(f"evidence item {item_name!r} does not match its manifest hash")
+
+
+class EvidenceUnreadableError(TamperSuspectError):
+    """The Execution Manifest or Execution Digest could not be read or parsed.
+
+    Covers a missing, malformed, unreadable, or invalid manifest/digest commitment
+    (raw ``FileNotFoundError``/``OSError``/``json.JSONDecodeError``/``UnicodeDecodeError``
+    at the store boundary). Without a readable commitment the evidence set cannot be
+    validated, so it is treated as tamper-suspect; the original cause is chained.
+    """

@@ -19,8 +19,7 @@ from .errors import BundleError
 
 def _read_yaml(path: Path) -> Any:
     try:
-        with open(path, "r", encoding="utf-8") as handle:
-            return yaml.safe_load(handle)
+        return yaml.safe_load(path.read_text(encoding="utf-8"))
     except (OSError, yaml.YAMLError) as exc:
         raise BundleError(f"could not read {path}: {exc}") from exc
 

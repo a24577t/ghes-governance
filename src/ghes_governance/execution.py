@@ -53,6 +53,16 @@ def run_execution(
     store_root: str | Path,
     engine_version: str = ENGINE_VERSION,
 ) -> ExecutionResult:
+    """Execute the ungoverned Observe-mode path — the Execution boundary seam.
+
+    Inventories every discovered repository unconditionally, records per-pair binding
+    provenance (zero authoritative bindings), and writes append-only Evidence, the
+    Execution Manifest, and the external Execution Digest under
+    ``store_root/<execution_id>/``; returns an ``ExecutionResult`` with status Complete.
+    The Evaluation Timestamp and execution identifier are injected — no wall clock is
+    read. Raises ``BundleError`` if the bundle contains an authoritative binding
+    (governed evaluation is a later ticket) or if a policy or repository lacks its id.
+    """
     bundle = load_bundle(bundle_path)
     estate = load_estate(estate_path)
 
@@ -96,4 +106,8 @@ def run_execution(
     header = manifest_header(execution_id, evaluation_scope, evaluation_timestamp, engine_version)
     exec_dir = write_execution(store_root, execution_id, header, items)
 
-    return ExecutionResult(execution_id=execution_id, status=ExecutionStatus.COMPLETE, execution_dir=exec_dir)
+    return ExecutionResult(
+        execution_id=execution_id,
+        status=ExecutionStatus.COMPLETE,
+        execution_dir=exec_dir,
+    )
