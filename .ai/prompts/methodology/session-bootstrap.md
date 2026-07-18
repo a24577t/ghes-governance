@@ -27,7 +27,7 @@ Do **not** assume a fixed artifact list. Discover the repository's authoritative
 
 How a repository exposes its domains is repository-specific implementation — directory conventions, repository metadata, a future manifest, or another mechanism. This prompt states the requirement and remains **agnostic to the mechanism**.
 
-> *Example (GHES): the discovered authority domains today are **architecture** (`.ai/architecture/`: the Status Artifact, the architecture baseline, domain model, principles, ADRs, `CONTEXT.md`) and **methodology** (`.ai/methodology/`: MADRs, principles, the lifecycle model). Others may appear later. These paths are this repository's instantiation, not a universal assumption.*
+> *Example (GHES): the discovered authority domains today are **architecture** (`.ai/architecture/`: the Status Artifact, the architecture baseline, domain model, principles, ADRs, `CONTEXT.md`), **methodology** (`.ai/methodology/`: MADRs, principles, the lifecycle model), and **standards** (`docs/standards/`: the Engineering Standards hub and the Python Coding Standard, with their enforcement stages — subordinate to the sources they index). Others may appear later. These paths are this repository's instantiation, not a universal assumption.*
 
 ## Verifiable Preconditions
 
@@ -39,6 +39,7 @@ Run these as explicit checks. Each **Passes** or **Fails**, and the results driv
 - The required artifacts carry an accepted status where acceptance is required.
 - Internal references resolve (ADR / MADR / specification / baseline cross-references).
 - Authority precedence is established across the discovered domains.
+- Working state is inspected read-only and reconciled against the Repository Continuity Artifact: current branch and HEAD, uncommitted changes, the stash list, unmerged local commits, and open pull requests are recorded; any divergence is surfaced, never silently acted on. Bootstrap inspects only — it does not switch branches, pop stashes, or merge.
 
 ## Continuity Artifact Handling
 
