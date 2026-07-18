@@ -33,3 +33,13 @@ def governed_bundle() -> Path:
 @pytest.fixture
 def governed_estate() -> Path:
     return FIXTURES / "governed" / "estate"
+
+
+@pytest.fixture
+def unknown_scope_bundle() -> Path:
+    return FIXTURES / "unknown-scope" / "bundle"
+
+
+@pytest.fixture
+def unknown_scope_estate() -> Path:
+    return FIXTURES / "unknown-scope" / "estate"

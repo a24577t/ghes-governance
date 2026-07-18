@@ -1,0 +1,17 @@
+enterprise: acme
+ghes_version: "3.13"
+organizations:
+  - octo-org
+repositories:
+  # 'visibility' is required by the binding's scope but the provider cannot determine it
+  # (marked undeterminable), so applicability is Unknown for this pair.
+  - id: octo-org/service-c
+    organization: octo-org
+    name: service-c
+    archived: false
+    fork: false
+    ghes_version: "3.13"
+    undeterminable:
+      - visibility
+    settings:
+      secret_scanning: enabled
