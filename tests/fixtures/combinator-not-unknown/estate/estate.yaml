@@ -1,0 +1,18 @@
+enterprise: acme
+ghes_version: "3.13"
+organizations:
+  - octo-org
+repositories:
+  # 'visibility' is undeterminable (Cannot Determine). The binding scope negates an
+  # equals over 'visibility', and not(Unknown) is Unknown — the negated operand is
+  # undeterminable, so applicability is Unknown for this pair.
+  - id: octo-org/service-f
+    organization: octo-org
+    name: service-f
+    archived: false
+    fork: false
+    ghes_version: "3.13"
+    undeterminable:
+      - visibility
+    settings:
+      secret_scanning: enabled
