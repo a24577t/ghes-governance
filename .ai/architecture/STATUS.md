@@ -1,6 +1,6 @@
 # Project Status
 
-Last Updated: 2026-07-16
+Last Updated: 2026-07-18
 
 ## Current Phase
 
@@ -88,9 +88,11 @@ The major test is the operational one: it is decidable, where "did the Domain Mo
 
 ## Current Objective
 
-**Immediate (methodology track):** validate the existing methodology prompts (`.ai/prompts/methodology/` and the working skills) against the accepted methodology architecture (`.ai/methodology/`), treating each prompt as an implementation of the accepted model. This is temporary work that does **not** advance or complete the Phase 2 Architecture Validation Sequence; only a genuine architectural deficiency reopens the accepted methodology.
+**Delivered:** Vertical Slice 1 **T0 — evidence spine** is merged to `main` (PR #16). It establishes the two public seams, the frozen execution-integrity contract, and a deterministic ungoverned execution; 9 tests green.
 
-**Next (product track):** the Vertical Slice 1 — Observe-Mode Tracer specification is approved and implementation-ready. Resume GHES product work — generate implementation tickets, then implement and review Slice 1.
+**Active next work item:** **T1 — smallest governed evaluation** (Slice 1 of 7). Its implementation-entry gate — approved seams, the required TDD method (from T1 onward), applicable standards and their enforcement stages, deferred scope, and authorization — is carried by the Repository Continuity Artifact `.ai/working/repository-continuity.md`; read it alongside this file before beginning T1.
+
+**In flight (not yet authoritative):** the Python Coding Standard and Engineering Standards hub (`docs/standards/`, Status: Proposed) await governance adoption on branch `context/methodology-refresh`.
 
 ## Current Validation Sequence
 
