@@ -88,11 +88,11 @@ The major test is the operational one: it is decidable, where "did the Domain Mo
 
 ## Current Objective
 
-**Delivered:** Vertical Slice 1 **T0 — evidence spine** is merged to `main` (PR #16). It establishes the two public seams, the frozen execution-integrity contract, and a deterministic ungoverned execution; 9 tests green.
+**Delivered:** Vertical Slice 1 **T0 — evidence spine** (PR #16) and **T1 — smallest governed evaluation** (PR #19) are merged to `main`. Together they establish the two public seams, the frozen execution-integrity contract, a deterministic ungoverned execution, and the minimal governed Compliant/Covered path; 10 tests green.
 
-**Active next work item:** **T1 — smallest governed evaluation** (Slice 1 of 7). Its implementation-entry gate — approved seams, the required TDD method (from T1 onward), applicable standards and their enforcement stages, deferred scope, and authorization — is carried by the Repository Continuity Artifact `.ai/working/repository-continuity.md`; read it alongside this file before beginning T1.
+**Active next work item:** **T2 — scope resolution, three-result contract & Unknown propagation** (Slice 1 of 7). Its implementation-entry gate — approved seams, the required TDD method, applicable standards and enforcement stages, deferred scope, and authorization — is carried by the Repository Continuity Artifact `.ai/working/repository-continuity.md`; read it alongside this file before beginning T2.
 
-**In flight (not yet authoritative):** the Python Coding Standard and Engineering Standards hub (`docs/standards/`, Status: Proposed) await governance adoption on branch `context/methodology-refresh`.
+**Authoritative standards:** the Engineering Standards hub and Python Coding Standard (`docs/standards/`) are adopted (PR #17) and authoritative.
 
 ## Current Validation Sequence
 
