@@ -88,9 +88,9 @@ The major test is the operational one: it is decidable, where "did the Domain Mo
 
 ## Current Objective
 
-**Delivered:** Vertical Slice 1 **T0 — evidence spine** (PR #16) and **T1 — smallest governed evaluation** (PR #19) are merged to `main`. Together they establish the two public seams, the frozen execution-integrity contract, a deterministic ungoverned execution, and the minimal governed Compliant/Covered path; 10 tests green.
+**Delivered:** Vertical Slice 1 **T0 — evidence spine** (PR #16), **T1 — smallest governed evaluation** (PR #19), **T2 — scope resolution, three-result contract & Unknown propagation** (PR #23, merge `8420200`), and **T3 — scope combinators (`any`/`all`/`not`) under three-valued logic** (PR #24, merge `daa802b`) are merged to `main`. Together they establish the two public seams, the frozen execution-integrity contract, a deterministic ungoverned execution, the minimal governed Compliant/Covered path, Cannot-Determine → Unknown applicability propagation, and recursive three-valued scope resolution; 14 tests green.
 
-**Active next work item:** **T2 — scope resolution, three-result contract & Unknown propagation** (Slice 1 of 7). Its implementation-entry gate — approved seams, the required TDD method, applicable standards and enforcement stages, deferred scope, and authorization — is carried by the Repository Continuity Artifact `.ai/working/repository-continuity.md`; read it alongside this file before beginning T2.
+**Active next work item:** **T4 — authority conflict & effective periods** (Slice 1 of 7). The T4 gate opens with a **governance decision, not code**: the `Applicable`+`Unknown` authority-selection semantics are undefined in ADR-0005/0013 and are tracked open in **issue #22** — settle them (grill-with-docs / an ADR-0005/0013 refinement) before implementing authority-conflict resolution. The proven-overlap case (≥2 `Applicable` → Policy Outcome and Coverage `Unknown`) and effective-period activation are already defined by ADR-0005/0013 and ADR-0010; `select_authoritative_binding` currently fails loud on the undetermined case.
 
 **Authoritative standards:** the Engineering Standards hub and Python Coding Standard (`docs/standards/`) are adopted (PR #17) and authoritative.
 
