@@ -93,3 +93,13 @@ def undeterminable_mixed_bundle() -> Path:
 @pytest.fixture
 def undeterminable_mixed_estate() -> Path:
     return FIXTURES / "undeterminable-mixed" / "estate"
+
+
+@pytest.fixture
+def undeterminable_multi_bundle() -> Path:
+    return FIXTURES / "undeterminable-multi" / "bundle"
+
+
+@pytest.fixture
+def undeterminable_multi_estate() -> Path:
+    return FIXTURES / "undeterminable-multi" / "estate"

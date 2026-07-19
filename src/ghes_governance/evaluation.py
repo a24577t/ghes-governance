@@ -6,8 +6,8 @@ resolution, evaluate its composite policy through PredicateEvaluation, and aggre
 engine-owned Policy Outcome and Coverage State. Deliberately minimal — scope is an
 ``equals`` leaf or an ``any``/``all``/``not`` combinator under three-valued (Kleene) logic,
 predicates are a single ``equals`` (full operators and aggregation precedence are T3), and
-authority selection yields a terminal pair-level Unknown for a proven conflict or an A=1/U≥1
-undeterminable pair (the A=0/U≥2 case and effective periods are later increments). Broader
+authority selection yields a terminal pair-level Unknown for a proven conflict or an
+undeterminable pair — A=1/U≥1 or A=0/U≥2 (effective periods are a later increment). Broader
 inputs fail loud.
 """
 
@@ -65,9 +65,9 @@ def select_authoritative_binding(
     Returns ``(binding, applicability)`` where applicability is Applicable or Unknown;
     ``None`` when no active authoritative binding applies (a normal ungoverned state); an
     ``AuthorityConflict`` when two or more Applicable bindings prove a conflict; or an
-    ``AuthorityUndeterminable`` when one binding definitely applies and at least one other's
-    applicability is Unknown (A=1, U≥1). NotApplicable bindings are excluded. Two or more
-    Unknown candidates with none Applicable (A=0, U≥2) remains undefined and fails loud.
+    ``AuthorityUndeterminable`` when authority cannot be established — one binding applies and
+    at least one other's applicability is Unknown (A=1, U≥1), or none applies and two or more
+    are Unknown (A=0, U≥2). NotApplicable bindings are excluded.
     """
     candidates = [
         (binding, resolve_applicability(binding.get("scope"), repo))
@@ -84,24 +84,17 @@ def select_authoritative_binding(
         # A proven authority conflict: more than one binding whose scope is Applicable
         # (ADR-0005, ADR-0013, ADR-0015). The caller records the terminal pair-level Unknown.
         return AuthorityConflict(conflicting=applicable)
-    if applicable and undeterminable:
-        # A=1, U≥1: one binding definitely applies and at least one other's applicability is
-        # Unknown, so the Unknown candidate is neither counted nor excluded — authority cannot
-        # be established (ADR-0015). The caller records the terminal pair-level Unknown.
+    if undeterminable and (applicable or len(undeterminable) > 1):
+        # Authority cannot be established (ADR-0015): one binding definitely applies and at
+        # least one other's applicability is Unknown (A=1, U≥1), or none is Applicable and two
+        # or more are Unknown (A=0, U≥2). The Unknown candidates are neither counted nor
+        # excluded; the caller records the terminal pair-level Unknown.
         return AuthorityUndeterminable(
             applicable=applicable,
             undeterminable=[
                 (binding, _undetermined_attributes(binding.get("scope"), repo))
                 for binding in undeterminable
             ],
-        )
-    if len(undeterminable) > 1:
-        # A=0, U≥2: two or more undeterminable candidates and none Applicable — still undefined
-        # in this slice; fail loud rather than resolve.
-        raise NotImplementedError(
-            "undetermined authoritative binding selection: two or more authoritative bindings "
-            "have Unknown applicability and none is Applicable; resolving it is not defined in "
-            "this slice"
         )
     if applicable:
         return applicable[0], ApplicabilityOutcome.APPLICABLE

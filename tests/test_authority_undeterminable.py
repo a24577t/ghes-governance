@@ -80,3 +80,69 @@ def test_authority_undeterminable_applicable_plus_cannot_determine(
     # Observation was incomplete → CompleteWithGaps; no requirement set was evaluated.
     assert report["execution_status"] == "CompleteWithGaps"
     assert report["accounting"]["evaluated"] == 0
+
+
+def test_authority_undeterminable_two_unknown_none_applicable(
+    tmp_path, undeterminable_multi_bundle, undeterminable_multi_estate
+):
+    store = tmp_path / "store"
+    run_execution(
+        bundle_path=undeterminable_multi_bundle,
+        estate_path=undeterminable_multi_estate,
+        evaluation_scope=SCOPE,
+        evaluation_timestamp=TIMESTAMP,
+        execution_id=EXECUTION_ID,
+        store_root=store,
+    )
+
+    report = derive_reports(store_root=store, execution_id=EXECUTION_ID).json_report
+    policy_id, repository_id = "policy.baseline", "octo-org/service-i"
+
+    # Terminal Unknown in both dimensions.
+    assert any(
+        o["policy_id"] == policy_id
+        and o["repository_id"] == repository_id
+        and o["policy_outcome"] == "Unknown"
+        for o in report["compliance"]["outcomes"]
+    )
+    assert any(
+        c["policy_id"] == policy_id
+        and c["repository_id"] == repository_id
+        and c["coverage_state"] == "Unknown"
+        for c in report["coverage"]["states"]
+    )
+
+    # Exactly one authority_undeterminable finding naming both Unknown candidates and each
+    # candidate's own decision-relevant undetermined attribute.
+    findings = [
+        f
+        for f in report["findings"]
+        if f["kind"] == "authority_undeterminable"
+        and f["policy_id"] == policy_id
+        and f["repository_id"] == repository_id
+    ]
+    assert len(findings) == 1
+    candidates = findings[0]["candidate_bindings"]
+    assert len(candidates) == 2
+    assert all(c["applicability"] == "Unknown" for c in candidates)
+    per_candidate = {frozenset(c.get("undetermined_attributes", [])) for c in candidates}
+    assert per_candidate == {frozenset({"visibility"}), frozenset({"topic"})}
+
+    # Exactly one causal Unknown, classified IncompleteObservation.
+    assert report["accounting"]["unknown"] == 1
+    assert any(
+        o["policy_id"] == policy_id
+        and o["repository_id"] == repository_id
+        and o["unknown_classification"] == "IncompleteObservation"
+        for o in report["compliance"]["outcomes"]
+    )
+
+    # Incomplete observation → CompleteWithGaps; no requirement set was evaluated.
+    assert report["execution_status"] == "CompleteWithGaps"
+    assert report["accounting"]["evaluated"] == 0
+
+    # Undeterminable authority is NOT absent authority: the pair is governed, not ungoverned.
+    assert not any(
+        p["policy_id"] == policy_id and p["repository_id"] == repository_id
+        for p in report["ungoverned_pairs"]
+    )
