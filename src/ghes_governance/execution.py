@@ -25,7 +25,12 @@ from .enums import (
     UnknownClassification,
 )
 from .errors import BundleError
-from .evaluation import AuthorityConflict, evaluate_policy, select_authoritative_binding
+from .evaluation import (
+    AuthorityConflict,
+    AuthorityUndeterminable,
+    evaluate_policy,
+    select_authoritative_binding,
+)
 from .model import (
     binding_provenance_payload,
     evidence_item,
@@ -90,6 +95,35 @@ def _unknown_result(
         "policy_outcome": PolicyOutcome.UNKNOWN.value,
         "coverage_state": CoverageState.UNKNOWN.value,
         "unknown_classification": classification,
+    }
+
+
+def _authority_undeterminable_finding(
+    policy_id: str, repository_id: str, undeterminable: AuthorityUndeterminable
+) -> dict[str, Any]:
+    """A governance finding: authority cannot be established; names every candidate binding
+    and, per unresolved candidate, the scope attributes that could not be determined."""
+    candidate_bindings = [
+        {
+            "policy_version": binding.get("policy_version"),
+            "scope": binding.get("scope"),
+            "applicability": ApplicabilityOutcome.APPLICABLE.value,
+        }
+        for binding in undeterminable.applicable
+    ] + [
+        {
+            "policy_version": binding.get("policy_version"),
+            "scope": binding.get("scope"),
+            "applicability": ApplicabilityOutcome.UNKNOWN.value,
+            "undetermined_attributes": attributes,
+        }
+        for binding, attributes in undeterminable.undeterminable
+    ]
+    return {
+        "kind": "authority_undeterminable",
+        "policy_id": policy_id,
+        "repository_id": repository_id,
+        "candidate_bindings": candidate_bindings,
     }
 
 
@@ -161,6 +195,28 @@ def run_execution(
                 )
                 governance_findings.append(
                     _authority_conflict_finding(policy_id, repo["id"], selection.conflicting)
+                )
+                unknown += 1
+                continue
+
+            if isinstance(selection, AuthorityUndeterminable):
+                # Authority cannot be established (ADR-0015, A=1 & U≥1): a terminal pair-level
+                # Unknown classified IncompleteObservation (a Cannot-Determine gap → the status
+                # is CompleteWithGaps), no requirement evaluation, and an authority-undeterminable
+                # finding naming every candidate and the undetermined attributes.
+                candidate_count = len(selection.applicable) + len(selection.undeterminable)
+                pairs.append(
+                    _pair_provenance(
+                        policy_id, repo["id"], authoritative_binding_count=candidate_count
+                    )
+                )
+                results.append(
+                    _unknown_result(
+                        policy_id, repo["id"], UnknownClassification.INCOMPLETE_OBSERVATION.value
+                    )
+                )
+                governance_findings.append(
+                    _authority_undeterminable_finding(policy_id, repo["id"], selection)
                 )
                 unknown += 1
                 continue

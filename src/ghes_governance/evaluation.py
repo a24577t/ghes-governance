@@ -5,9 +5,10 @@ authoritative Observe binding for a (policy, repository) pair via three-result s
 resolution, evaluate its composite policy through PredicateEvaluation, and aggregate the
 engine-owned Policy Outcome and Coverage State. Deliberately minimal — scope is an
 ``equals`` leaf or an ``any``/``all``/``not`` combinator under three-valued (Kleene) logic,
-predicates are a single ``equals`` (full operators and aggregation precedence are T3), and a
-proven authority conflict yields a terminal pair-level Unknown (undetermined-authority
-multiplicity and effective periods are later T4 increments). Broader inputs fail loud.
+predicates are a single ``equals`` (full operators and aggregation precedence are T3), and
+authority selection yields a terminal pair-level Unknown for a proven conflict or an A=1/U≥1
+undeterminable pair (the A=0/U≥2 case and effective periods are later increments). Broader
+inputs fail loud.
 """
 
 from __future__ import annotations
@@ -41,20 +42,32 @@ class AuthorityConflict:
     conflicting: list[dict[str, Any]]
 
 
+@dataclass(frozen=True)
+class AuthorityUndeterminable:
+    """Authority cannot be established (ADR-0015, A=1 & U≥1): one binding definitely applies
+    and at least one other's scope applicability is Unknown, so it is neither counted nor
+    excluded. Carries the applicable candidates and, per unresolved candidate, the scope
+    attributes that could not be determined, for the terminal Unknown and its finding.
+    """
+
+    applicable: list[dict[str, Any]]
+    undeterminable: list[tuple[dict[str, Any], list[str]]]
+
+
 def select_authoritative_binding(
     bindings: list[dict[str, Any]],
     policy: dict[str, Any],
     repo: dict[str, Any],
     evaluation_timestamp: str,
-) -> tuple[dict[str, Any], ApplicabilityOutcome] | AuthorityConflict | None:
+) -> tuple[dict[str, Any], ApplicabilityOutcome] | AuthorityConflict | AuthorityUndeterminable | None:
     """Select the authoritative Observe binding for (policy, repo) and its applicability.
 
     Returns ``(binding, applicability)`` where applicability is Applicable or Unknown;
-    ``None`` when no active authoritative binding applies (a normal ungoverned state); or an
-    ``AuthorityConflict`` when two or more Applicable bindings prove a conflict (the caller
-    records the terminal Unknown). NotApplicable bindings are excluded. A multiplicity that
-    instead turns on an Unknown applicability is neither proven nor excluded and is undefined
-    in the architecture (ADR-0005/0013 speak of Applicable matches); it fails loud here.
+    ``None`` when no active authoritative binding applies (a normal ungoverned state); an
+    ``AuthorityConflict`` when two or more Applicable bindings prove a conflict; or an
+    ``AuthorityUndeterminable`` when one binding definitely applies and at least one other's
+    applicability is Unknown (A=1, U≥1). NotApplicable bindings are excluded. Two or more
+    Unknown candidates with none Applicable (A=0, U≥2) remains undefined and fails loud.
     """
     candidates = [
         (binding, resolve_applicability(binding.get("scope"), repo))
@@ -71,15 +84,24 @@ def select_authoritative_binding(
         # A proven authority conflict: more than one binding whose scope is Applicable
         # (ADR-0005, ADR-0013, ADR-0015). The caller records the terminal pair-level Unknown.
         return AuthorityConflict(conflicting=applicable)
-    if undeterminable and (applicable or len(undeterminable) > 1):
-        # More than one binding could apply and at least one has Unknown applicability, so an
-        # authoritative overlap is neither proven nor excluded. This is not the proven conflict
-        # of ADR-0005/0013 (defined over Applicable matches); the architecture does not define
-        # it, so fail loud rather than silently pick the Applicable binding or invent a winner.
+    if applicable and undeterminable:
+        # A=1, U≥1: one binding definitely applies and at least one other's applicability is
+        # Unknown, so the Unknown candidate is neither counted nor excluded — authority cannot
+        # be established (ADR-0015). The caller records the terminal pair-level Unknown.
+        return AuthorityUndeterminable(
+            applicable=applicable,
+            undeterminable=[
+                (binding, _undetermined_attributes(binding.get("scope"), repo))
+                for binding in undeterminable
+            ],
+        )
+    if len(undeterminable) > 1:
+        # A=0, U≥2: two or more undeterminable candidates and none Applicable — still undefined
+        # in this slice; fail loud rather than resolve.
         raise NotImplementedError(
-            "undetermined authoritative binding selection: more than one authoritative binding "
-            "could apply and at least one has Unknown applicability; resolving it is not defined "
-            "in this slice"
+            "undetermined authoritative binding selection: two or more authoritative bindings "
+            "have Unknown applicability and none is Applicable; resolving it is not defined in "
+            "this slice"
         )
     if applicable:
         return applicable[0], ApplicabilityOutcome.APPLICABLE
@@ -172,6 +194,32 @@ def _resolve_not(operand: Any, repo: dict[str, Any]) -> ApplicabilityOutcome:
     if outcome is ApplicabilityOutcome.NOT_APPLICABLE:
         return ApplicabilityOutcome.APPLICABLE
     return ApplicabilityOutcome.UNKNOWN
+
+
+def _undetermined_attributes(scope: Any, repo: dict[str, Any]) -> list[str]:
+    """Scope attributes that could not be determined *and* were decision-relevant to an
+    Unknown applicability — deduplicated, in scope-expression order.
+
+    Respects the combinator short-circuit: a determined operand that forces the result
+    (a TRUE in ``any``, a FALSE in ``all``) hides the undetermined operands it overrode, so
+    only operands that are themselves Unknown are followed. The reported attributes therefore
+    come from the same provider observations that produced the applicability and never
+    disagree with it.
+    """
+    operator = _expression_operator(scope, "scope expression")
+    if operator == "equals":
+        condition = _single_equals(scope, "attribute", "scope expression")
+        result, _value = _provider_lookup(repo, condition["attribute"])
+        return [condition["attribute"]] if result is ProviderResult.CANNOT_DETERMINE else []
+    if operator == "not":
+        return _undetermined_attributes(scope["not"], repo)
+    if operator in ("any", "all"):
+        attributes: list[str] = []
+        for operand in scope[operator]:
+            if resolve_applicability(operand, repo) is ApplicabilityOutcome.UNKNOWN:
+                attributes.extend(_undetermined_attributes(operand, repo))
+        return list(dict.fromkeys(attributes))
+    return []
 
 
 def evaluate_policy(policy: dict[str, Any], repo: dict[str, Any]) -> dict[str, Any]:
