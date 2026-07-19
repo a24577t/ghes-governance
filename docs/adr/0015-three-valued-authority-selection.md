@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 ---
 
 # Three-valued authority selection: undeterminable authority is distinct from proven conflict and from absent authority
