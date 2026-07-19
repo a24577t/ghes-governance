@@ -1,8 +1,8 @@
 # Repository Continuity Artifact
 
-**Updated:** 2026-07-18 (post-T3 merge)
-**Base:** `main` with T0–T3 merged (PRs #16, #19, #23, #24; head `daa802b`) and the methodology refresh (PR #17) adopted. 14 tests green.
-**Current branch:** `feat/slice1-t4-authority-conflict` (off `daa802b`).
+**Updated:** 2026-07-19 (post-ADR-0015 acceptance)
+**Base:** `main` with T0–T3 merged and **ADR-0015 accepted** (PRs #16, #19, #23, #24, #27) and the methodology refresh (PR #17) adopted. 14 tests green.
+**Current branch:** `feat/slice1-t4-authority-conflict`, rebased onto the ADR-0015-accepted baseline.
 
 A temporary, single-use bridge (MADR-0001; `create-repository-continuity.md`). It carries only uncommitted, in-flight intent and **pointers** to authoritative artifacts — never a second copy of committed history. Subordinate to authoritative repository state (the repository always prevails); retired or re-pointed as slices complete.
 
@@ -26,12 +26,12 @@ T0–T3 are committed authoritative history: see `.ai/architecture/STATUS.md` an
 - **`.ai/collaboration/instructor-architect-contract.md`:** an uncommitted working-tree modification carried since before T0; outside every slice's scope, awaiting a one-time decision (commit separately / revert / leave). **Do not stage into a slice.**
 - **Deferred methodology maintenance — issue #18** (Information Ownership / P8 + orphan consolidation): a dedicated maintenance PR, never during a slice.
 
-## Recommended Next Activity — T4 Gate (governance decision first)
+## Recommended Next Activity — T4 Gate (governance decision settled)
 
-Active work item: **T4 — authority conflict & effective periods** (Slice 1 of 7). The T4 gate **opens with a governance decision, not code**:
+Active work item: **T4 — authority conflict & effective periods** (Slice 1 of 7). Its governance decision is **settled** — T4 begins with the first failing seam-level test:
 
-- **Blocking governance decision — issue #22 (OPEN):** the `Applicable`+`Unknown` authority-selection semantics are undefined in ADR-0005/0013 (which specify conflict only over `Applicable` matches). Settle them via `grill-with-docs` / an ADR-0005/0013 refinement **before** writing any T4 test. `select_authoritative_binding` currently fails loud on the undetermined case; do not resolve it in code until the decision lands.
-- **Predecessor:** T3 merged to `main` — satisfied (PR #24, head `daa802b`).
+- **Governance decision (formerly issue #22) — RESOLVED by ADR-0015** (accepted 2026-07-19; Architecture Version 1.0.3): three-valued authority selection, the terminal authority-Unknown results, and the Unknown Classification are ratified. Implement as defined; do not re-decide. `select_authoritative_binding` still fails loud on the undetermined case, pending the T4 implementation.
+- **Predecessor:** T3 merged and ADR-0015 accepted — satisfied (PR #24; PR #27).
 - **Seams (confirm before writing any test):** the two public seams only — `run_execution`, `derive_reports`. No new public seam.
 - **Method (required):** Matt Pocock TDD (`.claude/skills/tdd/`) — confirm seams, red before green, minimal implementation, no internal side channels, independent expected values.
 - **Standards:** apply the authoritative `python-coding-standard.md`; observe its "in force now" set and enforcement stages.
