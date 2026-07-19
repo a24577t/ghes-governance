@@ -102,3 +102,12 @@ def governance_findings_payload(findings: list[dict[str, Any]]) -> dict[str, Any
             findings, key=lambda f: (f["kind"], f["policy_id"], f["repository_id"])
         )
     }
+
+
+def bundle_validation_payload(errors: list[dict[str, Any]]) -> dict[str, Any]:
+    """Configuration evidence for a Failed Execution (T5): the bundle validation errors and the
+    offending content, sorted deterministically (AC 12). No authoritative compliance or
+    coverage results accompany a Failed Execution."""
+    return {
+        "errors": sorted(errors, key=lambda e: (e["code"], e["artifact"], e["detail"]))
+    }

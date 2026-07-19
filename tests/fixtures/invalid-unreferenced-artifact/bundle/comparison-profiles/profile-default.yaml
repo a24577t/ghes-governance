@@ -1,0 +1,4 @@
+id: profile.default
+version: 1
+compared_fields:
+  - secret_scanning

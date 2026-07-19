@@ -1,0 +1,12 @@
+id: policy.experimental
+version: 1
+purpose: A hidden, unapproved experimental policy — must not be silently accepted.
+requirements:
+  - id: req.experimental
+    strategy:
+      identifier: PredicateEvaluation
+      version: 1
+    predicate:
+      equals:
+        setting: experimental
+        value: enabled

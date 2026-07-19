@@ -1,0 +1,8 @@
+policy: policy.baseline
+policy_version: 1
+evaluation_role: Authoritative
+enforcement_mode: Observe
+scope:
+  equals:
+    attribute: organization
+    value: octo-org
