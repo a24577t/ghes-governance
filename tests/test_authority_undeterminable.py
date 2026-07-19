@@ -81,6 +81,12 @@ def test_authority_undeterminable_applicable_plus_cannot_determine(
     assert report["execution_status"] == "CompleteWithGaps"
     assert report["accounting"]["evaluated"] == 0
 
+    # The pair is governed (not absent authority) — never surfaced as ungoverned.
+    assert not any(
+        p["policy_id"] == policy_id and p["repository_id"] == repository_id
+        for p in report["ungoverned_pairs"]
+    )
+
 
 def test_authority_undeterminable_two_unknown_none_applicable(
     tmp_path, undeterminable_multi_bundle, undeterminable_multi_estate

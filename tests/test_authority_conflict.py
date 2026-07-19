@@ -68,3 +68,9 @@ def test_proven_authority_conflict_is_terminal_unknown_and_stays_complete(
     # Execution Status stays Complete; no requirement set is evaluated for the pair.
     assert report["execution_status"] == "Complete"
     assert report["accounting"]["evaluated"] == 0
+
+    # The conflict pair is governed (not absent authority) — never surfaced as ungoverned.
+    assert not any(
+        p["policy_id"] == policy_id and p["repository_id"] == repository_id
+        for p in report["ungoverned_pairs"]
+    )
