@@ -68,12 +68,14 @@ Re-entry is a normal, expected move — not a failure. While it is open the slic
                         (authoritative baseline advances — Refinement excursion)
                                         │
                                         ▼
-                        Resume the slice at the interrupted point
-                        (Remediation semantics: destination is the interrupted state),
+                        Resume the slice at the interrupted phase
+                        (the work item never left In Implementation; it paused
+                         and now continues — cf. the Remediation destination
+                         principle, by analogy only),
                         re-running Verify-diff and Verify-architecture
 ```
 
-The decision is ratified in an authoritative artifact **before** code resumes — it never lives only in a commit message or a code comment. Resumption returns to the interrupted point, following the Lifecycle Model's Remediation rule ("its destination is the interrupted state, not the nearest stable state").
+The decision is ratified in an authoritative artifact **before** code resumes — it never lives only in a commit message or a code comment. Throughout, the work item **remains in *In Implementation*** — it does **not** enter the formal *Remediation* state; it **pauses** while the governing decision is ratified in the appropriate authoritative artifact, then **resumes at the interrupted phase**. The Lifecycle Model's Remediation *destination* rule — "its destination is the interrupted state, not the nearest stable state" — is invoked here only as an **analogous principle**, not as the lifecycle mechanism governing this case.
 
 > *Example (GHES).* A governed-evaluation slice surfaced a question the authoritative ADRs did not answer — how authority selection behaves when a candidate binding's scope applicability is itself `Unknown`. The slice did **not** invent an answer: it failed loud, recorded the question as a decision ticket, and deferred. At the next slice's entry the Decision phase resolved it (a grill-with-docs review of the governing ADRs); the resolution was ratified as a refinement ADR and a specification update; only then did implementation resume. This is one instance of the Refinement excursion, alongside the earlier architecture-version refinements raised during specification review.
 
@@ -86,11 +88,23 @@ The decision is ratified in an authoritative artifact **before** code resumes �
 
 On finding a crossing it does **not** bless, refine, or design the decision in review — it **halts the slice and re-enters the Decision phase** (the exception flow). Its job is to make an ad hoc governance/architecture decision impossible to merge, by catching it at the gate and routing it to the phase that owns it. A slice that made no such crossing passes to Merge.
 
+**Checklist.** The review passes only when every item is confirmed against the authoritative artifacts (the ADRs, the accepted architecture, and the approved specification):
+
+- [ ] The change **conforms to** the accepted architecture, ADRs, specifications, and invariants.
+- [ ] **No unresolved governance or architecture decision** was made during implementation (only local implementation-design choices, per the governing principle).
+- [ ] **Contracts and externally observable behavior** remain consistent with the authoritative artifacts.
+- [ ] Any **newly discovered architectural question** was **halted, ratified** in an authoritative artifact, **and only then implemented** (never decided at the keyboard).
+- [ ] With the above confirmed, the implementation is **eligible to proceed to Merge**.
+
+Any unchecked item is a crossing: halt the slice and re-enter the Decision phase (the exception flow) rather than resolving it in review.
+
+*Deferred (operationalization).* This gate is performed as a review activity defined by the checklist above; a dedicated Architecture Conformance Review **skill/prompt** is a deferred methodology enhancement — the phase-to-tool mappings are evolvable design, and no new skill is introduced here.
+
 **On the name.** *Conformance* over *Compliance*: "Compliance" is a load-bearing term in this project's own product domain (the compliance dimension; `PolicyOutcome` values), and reusing it for a process gate would overload it. "Conformance" states the gate's job precisely — does the implementation conform to the ratified architecture — without colliding with product vocabulary.
 
 ## Traceability
 
 - The governing principle and the halt-don't-decide rule implement **[P1](principles.md)** (human-owned decisions) and the methodology's **decision/design separation** (the MADR register versus design documents).
-- The re-entry path **is** the Lifecycle Model's **Refinement excursion** — a work-item-scoped activity causing a project-scoped, append-only architecture refinement (MADR-0002); resumption follows its **Remediation** rule.
+- The re-entry path **is** the Lifecycle Model's **Refinement excursion** — a work-item-scoped activity causing a project-scoped, append-only architecture refinement (MADR-0002). During it the work item stays in *In Implementation* and resumes at the interrupted phase; the Remediation *destination* rule is cited only as an analogous principle, not as the governing mechanism.
 - "No ad hoc architecture decision merges" is enforced as a transition postcondition: Architecture Conformance Review is a precondition of Merge.
 - The phase-to-tool mappings are **evolvable design** — the named tools are the current implementations of these transitions; nothing foundational depends on a specific tool.
