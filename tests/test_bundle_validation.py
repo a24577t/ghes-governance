@@ -35,6 +35,8 @@ INVALID_BUNDLES = [
     ("invalid-relief", "unsupported-artifact", "relief"),
     ("invalid-unreferenced-artifact", "unsupported-artifact", "comparison-profiles"),
     ("invalid-stray-in-dir", "unsupported-artifact", "policies/notes.txt"),
+    ("invalid-hidden-root-dir", "unsupported-artifact", ".relief"),
+    ("invalid-hidden-yaml-in-dir", "unsupported-artifact", "policies/.policy-experimental.yaml"),
     ("invalid-duplicate-policy", "duplicate-policy", "policies/policy-duplicate.yaml"),
     ("invalid-dangling-binding", "dangling-binding-reference", "bindings/binding-baseline.yaml"),
 ]
@@ -69,6 +71,27 @@ def test_invalid_bundle_fails_execution_with_configuration_evidence(
     # Configuration evidence identifies the validation error and the offending content.
     errors = report["bundle_validation"]
     assert any(e["code"] == code and e["artifact"] == artifact for e in errors), errors
+
+
+def test_gitkeep_is_accepted_and_does_not_fail_validation(
+    tmp_path, ungoverned_bundle, ungoverned_estate
+):
+    # A regular `.gitkeep` (present in ungoverned/bundle/bindings/) is a git placeholder, not
+    # desired state: it is the one hidden entry validation ignores. Its presence must not make
+    # the Execution Failed — only genuinely unsupported hidden content does.
+    store = tmp_path / "store"
+    result = run_execution(
+        bundle_path=ungoverned_bundle,
+        estate_path=ungoverned_estate,
+        evaluation_scope=SCOPE,
+        evaluation_timestamp=TIMESTAMP,
+        execution_id=EXECUTION_ID,
+        store_root=store,
+    )
+    assert result.status is not ExecutionStatus.FAILED
+
+    report = derive_reports(store_root=store, execution_id=EXECUTION_ID).json_report
+    assert report["bundle_validation"] == []
 
 
 def test_failed_execution_evidence_is_byte_deterministic(tmp_path, governed_estate):

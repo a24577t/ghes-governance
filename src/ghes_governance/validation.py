@@ -64,7 +64,7 @@ def _validate_artifact_layout(root: Path) -> list[dict[str, Any]]:
     """Reject any bundle-root entry that is not a supported artifact directory (whole-bundle)."""
     errors: list[dict[str, Any]] = []
     for entry in sorted(root.iterdir(), key=lambda p: p.name):
-        if entry.name.startswith("."):
+        if _is_gitkeep(entry):
             continue
         if entry.name not in SUPPORTED_ARTIFACT_DIRS or not entry.is_dir():
             errors.append(
@@ -81,20 +81,20 @@ def _validate_artifact_layout(root: Path) -> list[dict[str, Any]]:
 def _scan_artifact_dir(directory: Path) -> tuple[list[Path], list[dict[str, Any]]]:
     """Return the ``*.yaml`` artifacts in a supported directory and any layout errors.
 
-    Whole-bundle discipline reaches inside a supported directory too: a non-hidden entry that
-    is not a ``.yaml`` document — a stray file, a nested directory — is unsupported content and
-    is recorded, never silently skipped (Implementation Decision line 138). Hidden entries
-    (``.gitkeep`` and the like) are git/tooling placeholders, not desired state, and are
-    ignored.
+    Whole-bundle discipline reaches inside a supported directory too: any entry that is not a
+    non-hidden ``.yaml`` document — a stray file, a nested directory, a *hidden* ``.yaml`` such
+    as ``.policy-experimental.yaml`` — is unsupported content and is recorded, never silently
+    skipped (Implementation Decision line 138). The sole exception is a regular ``.gitkeep``
+    file (a git placeholder for an otherwise-empty directory), which is not desired state.
     """
     if not directory.is_dir():
         return [], []
     yaml_paths: list[Path] = []
     errors: list[dict[str, Any]] = []
     for entry in sorted(directory.iterdir(), key=lambda p: p.name):
-        if entry.name.startswith("."):
+        if _is_gitkeep(entry):
             continue
-        if entry.is_file() and entry.suffix == ".yaml":
+        if entry.is_file() and entry.suffix == ".yaml" and not entry.name.startswith("."):
             yaml_paths.append(entry)
         else:
             errors.append(
@@ -255,6 +255,16 @@ def _load_yaml(path: Path, artifact: str) -> tuple[Any, dict[str, Any] | None]:
         return yaml.safe_load(path.read_text(encoding="utf-8")), None
     except (OSError, yaml.YAMLError):
         return None, _error("malformed-artifact", artifact, "artifact is not well-formed YAML")
+
+
+def _is_gitkeep(entry: Path) -> bool:
+    """The one entry validation ignores: a regular file named exactly ``.gitkeep``.
+
+    A git placeholder for an otherwise-empty directory, not desired-state content. Every other
+    entry — including any other hidden file or hidden directory — is validated or rejected, so
+    unsupported content can never hide behind a leading dot (no silent ignoring, line 138).
+    """
+    return entry.is_file() and entry.name == ".gitkeep"
 
 
 def _error(code: str, artifact: str, detail: str) -> dict[str, Any]:
