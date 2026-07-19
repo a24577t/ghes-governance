@@ -73,3 +73,13 @@ def not_unknown_bundle() -> Path:
 @pytest.fixture
 def not_unknown_estate() -> Path:
     return FIXTURES / "combinator-not-unknown" / "estate"
+
+
+@pytest.fixture
+def conflict_bundle() -> Path:
+    return FIXTURES / "conflict-proven" / "bundle"
+
+
+@pytest.fixture
+def conflict_estate() -> Path:
+    return FIXTURES / "conflict-proven" / "estate"

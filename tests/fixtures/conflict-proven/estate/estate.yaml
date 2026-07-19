@@ -1,0 +1,16 @@
+enterprise: acme
+ghes_version: "3.13"
+organizations:
+  - octo-org
+repositories:
+  # Two authoritative Observe bindings both definitely apply to this pair (organization
+  # and repository name each match) — a proven authority conflict for
+  # (policy.baseline, octo-org/service-g).
+  - id: octo-org/service-g
+    organization: octo-org
+    name: service-g
+    archived: false
+    fork: false
+    ghes_version: "3.13"
+    settings:
+      secret_scanning: enabled

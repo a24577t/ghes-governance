@@ -17,14 +17,21 @@ from typing import Any
 
 from . import ENGINE_VERSION
 from .bundle import load_bundle, load_estate
-from .enums import ApplicabilityOutcome, CoverageState, ExecutionStatus, PolicyOutcome
+from .enums import (
+    ApplicabilityOutcome,
+    CoverageState,
+    ExecutionStatus,
+    PolicyOutcome,
+    UnknownClassification,
+)
 from .errors import BundleError
-from .evaluation import evaluate_policy, select_authoritative_binding
+from .evaluation import AuthorityConflict, evaluate_policy, select_authoritative_binding
 from .model import (
     binding_provenance_payload,
     evidence_item,
     execution_status_payload,
     findings_payload,
+    governance_findings_payload,
     inventory_payload,
     manifest_header,
     policy_results_payload,
@@ -47,12 +54,29 @@ def _inventory_record(repo: dict[str, Any]) -> dict[str, Any]:
     return {field: repo[field] for field in _INVENTORY_FIELDS if field in repo}
 
 
-def _pair_provenance(policy_id: str, repository_id: str, *, governed: bool) -> dict[str, Any]:
+def _pair_provenance(
+    policy_id: str, repository_id: str, *, authoritative_binding_count: int
+) -> dict[str, Any]:
     return {
         "policy_id": policy_id,
         "repository_id": repository_id,
-        "authoritative_binding_count": 1 if governed else 0,
-        "governed": governed,
+        "authoritative_binding_count": authoritative_binding_count,
+        "governed": authoritative_binding_count > 0,
+    }
+
+
+def _authority_conflict_finding(
+    policy_id: str, repository_id: str, conflicting: list[dict[str, Any]]
+) -> dict[str, Any]:
+    """A governance-configuration finding enumerating the conflicting authoritative bindings."""
+    return {
+        "kind": "authority_conflict",
+        "policy_id": policy_id,
+        "repository_id": repository_id,
+        "conflicting_bindings": [
+            {"policy_version": b.get("policy_version"), "scope": b.get("scope")}
+            for b in conflicting
+        ],
     }
 
 
@@ -87,6 +111,7 @@ def run_execution(
 
     pairs: list[dict[str, Any]] = []
     findings: list[dict[str, Any]] = []
+    governance_findings: list[dict[str, Any]] = []
     results: list[dict[str, Any]] = []
     evaluated = 0
     unknown = 0
@@ -100,11 +125,39 @@ def run_execution(
                 bundle["bindings"], policy, repo, evaluation_timestamp
             )
             if selection is None:
-                pairs.append(_pair_provenance(policy_id, repo["id"], governed=False))
+                pairs.append(
+                    _pair_provenance(policy_id, repo["id"], authoritative_binding_count=0)
+                )
+                continue
+
+            if isinstance(selection, AuthorityConflict):
+                # Proven conflict → a terminal pair-level Unknown, classified GovernanceResult
+                # (not an observation gap, so Execution Status stays Complete), no requirement
+                # evaluation, and an authority-conflict finding (ADR-0005/0013/0015).
+                pairs.append(
+                    _pair_provenance(
+                        policy_id,
+                        repo["id"],
+                        authoritative_binding_count=len(selection.conflicting),
+                    )
+                )
+                results.append(
+                    {
+                        "policy_id": policy_id,
+                        "repository_id": repo["id"],
+                        "policy_outcome": PolicyOutcome.UNKNOWN.value,
+                        "coverage_state": CoverageState.UNKNOWN.value,
+                        "unknown_classification": UnknownClassification.GOVERNANCE_RESULT.value,
+                    }
+                )
+                governance_findings.append(
+                    _authority_conflict_finding(policy_id, repo["id"], selection.conflicting)
+                )
+                unknown += 1
                 continue
 
             _binding, applicability = selection
-            pairs.append(_pair_provenance(policy_id, repo["id"], governed=True))
+            pairs.append(_pair_provenance(policy_id, repo["id"], authoritative_binding_count=1))
 
             if applicability is ApplicabilityOutcome.UNKNOWN:
                 results.append(
@@ -113,6 +166,7 @@ def run_execution(
                         "repository_id": repo["id"],
                         "policy_outcome": PolicyOutcome.UNKNOWN.value,
                         "coverage_state": CoverageState.UNKNOWN.value,
+                        "unknown_classification": UnknownClassification.INCOMPLETE_OBSERVATION.value,
                     }
                 )
                 unknown += 1
@@ -129,7 +183,16 @@ def run_execution(
                 )
                 evaluated += 1
 
-    status_value = ExecutionStatus.COMPLETE_WITH_GAPS if unknown else ExecutionStatus.COMPLETE
+    # Execution Status derives from the Unknown Classification recorded on the causal
+    # policy-result evidence: only IncompleteObservation Unknowns are observation gaps.
+    status_value = (
+        ExecutionStatus.COMPLETE_WITH_GAPS
+        if any(
+            r.get("unknown_classification") == UnknownClassification.INCOMPLETE_OBSERVATION.value
+            for r in results
+        )
+        else ExecutionStatus.COMPLETE
+    )
     status = execution_status_payload(
         status_value,
         discovered=len(repositories),
@@ -139,11 +202,16 @@ def run_execution(
 
     provenance = binding_provenance_payload(pairs)
     finding_evidence = findings_payload(findings)
+    conflict_evidence = governance_findings_payload(governance_findings)
     result_evidence = policy_results_payload(results)
     items = [
         ("binding-provenance.json", evidence_item("binding_provenance", execution_id, provenance)),
         ("execution-status.json", evidence_item("execution_status", execution_id, status)),
         ("findings.json", evidence_item("findings", execution_id, finding_evidence)),
+        (
+            "governance-findings.json",
+            evidence_item("governance_findings", execution_id, conflict_evidence),
+        ),
         ("inventory.json", evidence_item("inventory", execution_id, inventory)),
         ("policy-results.json", evidence_item("policy_results", execution_id, result_evidence)),
     ]

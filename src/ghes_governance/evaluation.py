@@ -5,12 +5,14 @@ authoritative Observe binding for a (policy, repository) pair via three-result s
 resolution, evaluate its composite policy through PredicateEvaluation, and aggregate the
 engine-owned Policy Outcome and Coverage State. Deliberately minimal — scope is an
 ``equals`` leaf or an ``any``/``all``/``not`` combinator under three-valued (Kleene) logic,
-predicates are a single ``equals`` (full operators and aggregation precedence are T3), and
-authority conflict is T4. Broader inputs fail loud.
+predicates are a single ``equals`` (full operators and aggregation precedence are T3), and a
+proven authority conflict yields a terminal pair-level Unknown (undetermined-authority
+multiplicity and effective periods are later T4 increments). Broader inputs fail loud.
 """
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Any
 
 from .enums import (
@@ -27,20 +29,32 @@ from .enums import (
 from .errors import BundleError
 
 
+@dataclass(frozen=True)
+class AuthorityConflict:
+    """A proven authority conflict: two or more Applicable authoritative bindings for a pair.
+
+    Carries the conflicting bindings so the Execution boundary can record the terminal
+    pair-level Unknown outcome and enumerate them in the authority-conflict finding
+    (ADR-0005, ADR-0013, ADR-0015).
+    """
+
+    conflicting: list[dict[str, Any]]
+
+
 def select_authoritative_binding(
     bindings: list[dict[str, Any]],
     policy: dict[str, Any],
     repo: dict[str, Any],
     evaluation_timestamp: str,
-) -> tuple[dict[str, Any], ApplicabilityOutcome] | None:
+) -> tuple[dict[str, Any], ApplicabilityOutcome] | AuthorityConflict | None:
     """Select the authoritative Observe binding for (policy, repo) and its applicability.
 
-    Returns ``(binding, applicability)`` where applicability is Applicable or Unknown, or
-    ``None`` when no active authoritative binding applies (a normal ungoverned state).
-    NotApplicable bindings are excluded. More than one *Applicable* binding is a proven
-    authority conflict, deferred to T4. A multiplicity that instead turns on an Unknown
-    applicability is neither proven nor excluded and is undefined in the architecture
-    (ADR-0005/0013 speak of Applicable matches); both fail loud rather than resolve here.
+    Returns ``(binding, applicability)`` where applicability is Applicable or Unknown;
+    ``None`` when no active authoritative binding applies (a normal ungoverned state); or an
+    ``AuthorityConflict`` when two or more Applicable bindings prove a conflict (the caller
+    records the terminal Unknown). NotApplicable bindings are excluded. A multiplicity that
+    instead turns on an Unknown applicability is neither proven nor excluded and is undefined
+    in the architecture (ADR-0005/0013 speak of Applicable matches); it fails loud here.
     """
     candidates = [
         (binding, resolve_applicability(binding.get("scope"), repo))
@@ -54,11 +68,9 @@ def select_authoritative_binding(
     undeterminable = [b for b, outcome in candidates if outcome is ApplicabilityOutcome.UNKNOWN]
 
     if len(applicable) > 1:
-        # A proven authoritative overlap: more than one binding whose scope is Applicable
-        # (ADR-0005, ADR-0013). Resolving it to a pair-level Unknown is ticket T4.
-        raise NotImplementedError(
-            "authority conflict (more than one applicable authoritative binding) is ticket T4"
-        )
+        # A proven authority conflict: more than one binding whose scope is Applicable
+        # (ADR-0005, ADR-0013, ADR-0015). The caller records the terminal pair-level Unknown.
+        return AuthorityConflict(conflicting=applicable)
     if undeterminable and (applicable or len(undeterminable) > 1):
         # More than one binding could apply and at least one has Unknown applicability, so an
         # authoritative overlap is neither proven nor excluded. This is not the proven conflict
