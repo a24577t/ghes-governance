@@ -31,7 +31,7 @@ T0–T3 are committed authoritative history: see `.ai/architecture/STATUS.md` an
 Active work item: **T4 — authority conflict & effective periods** (Slice 1 of 7), in review on `feat/slice1-t4-authority-conflict` (not merged).
 
 - **ADR-0015 authority-selection decision table — implemented and covered.** Every row has a seam-level test: ungoverned (A=0/U=0), single-Applicable governed (A=1/U=0), proven conflict (A≥2 → `Complete`, `GovernanceResult`, `authority_conflict`), authority-undeterminable (A=1/U≥1 and A=0/U≥2 → `CompleteWithGaps`, `IncompleteObservation`, `authority_undeterminable` naming candidates and their undetermined attributes), single-Unknown scope-undetermined (A=0/U=1). Execution Status derives from the recorded Unknown Classification.
-- **Remaining T4 work:** dedicated effective-period boundary coverage (S7/AC7). `_binding_active` implements half-open activation (start inclusive, end exclusive) but has no boundary/future-dated test yet.
+- **Effective-period boundary (S7/AC7) — covered by characterization.** `test_effective_periods.py` verifies the half-open `[start, end)` contract through the seam (active at `effective_start`; inactive at `effective_end`; inactive future-dated). `_binding_active` implements the activation (T1).
 - **Predecessor:** T3 merged and ADR-0015 accepted — satisfied (PR #24; PR #27).
 - **Seams:** the two public seams only — `run_execution`, `derive_reports`. No new public seam.
 - **Deferred — do not pull forward:** T5, T6, T7; predicate operators / aggregation precedence; `StrEnum` migration; tooling installation.
