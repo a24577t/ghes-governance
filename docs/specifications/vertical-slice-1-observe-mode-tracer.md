@@ -82,6 +82,10 @@ The demo: run the CLI on a fixture, show a noncompliant finding with its full ex
 34. As a compliance auditor, I want both a machine-readable JSON report and a human-readable summary, so that operators triage and auditors verify from the same evidence.
 35. As a governance operator, I want (policy, repository) pairs with zero authoritative bindings surfaced in reporting as their own derived category, so that ungoverned pairs are visible without inventing an outcome for them.
 
+**Bindings & Authority (ADR-0015 refinement)**
+
+36. As a governance operator, I want a (policy, repository) pair whose authoritative authority cannot be *established* — one binding definitely applies but a competing binding's applicability is undeterminable, or no binding definitely applies and two or more are undeterminable — to yield official Policy Outcome and Coverage State `Unknown`, an authority-undeterminable finding, and Execution Status `CompleteWithGaps`, so that undeterminable authority is never silently resolved to a lone applicable binding, nor mistaken for a proven conflict or for absent authority.
+
 ## Execution Lifecycle
 
 `CONTEXT.md:149-150` defines an Execution as a run that evaluates a declared Evaluation Scope **and produces Evidence**; `CONTEXT.md:155-156` records Execution Status **in Evidence**. A request refused before it produces Evidence is therefore not an Execution and cannot carry an Execution Status. This section fixes where that boundary falls *(specification decision, not an architectural requirement)*.
@@ -205,6 +209,7 @@ This is the same precedence shape the platform already uses for compliance aggre
 | S14 | Before/after hash of fixture and bundle directories | AC 14 |
 | S15 | Execution request submitted against a store already holding that execution identifier | AC 15 |
 | S16 | Determined operand composed with an undeterminable one, in both divergent cells (`all(FALSE, Unknown)`, `any(TRUE, Unknown)`) and in both scope expressions and predicates | AC 16, stories 5, 7, 17 |
+| S17 | One `Applicable` authoritative binding plus an undetermined candidate over the same pair; and, separately, two undetermined candidates with none `Applicable` | AC 17, story 36 |
 
 ## Out of Scope (delivered by later slices — see the Phase 2 Architecture Validation Plan)
 
