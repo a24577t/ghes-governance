@@ -107,3 +107,15 @@ class ApplicabilityOutcome(StrEnum):
     APPLICABLE = "Applicable"
     NOT_APPLICABLE = "NotApplicable"
     UNKNOWN = "Unknown"
+
+
+class UnknownClassification(StrEnum):
+    """Why an Unknown arose, recorded on the causal record; Execution Status derives from it.
+
+    Two members (ADR-0015): ``IncompleteObservation`` (a Cannot-Determine gap) and
+    ``GovernanceResult`` (a determined governance verdict, e.g. authority conflict). Only
+    ``GovernanceResult`` is emitted in this slice; classifying gap Unknowns is a later step.
+    """
+
+    INCOMPLETE_OBSERVATION = "IncompleteObservation"
+    GOVERNANCE_RESULT = "GovernanceResult"

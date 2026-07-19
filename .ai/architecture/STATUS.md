@@ -1,6 +1,6 @@
 # Project Status
 
-Last Updated: 2026-07-18
+Last Updated: 2026-07-19
 
 ## Current Phase
 
@@ -28,17 +28,18 @@ Architecture Baseline v1 is immutable and predates this split; it is **not** edi
 - [x] Architecture Baseline v1 published
 - [x] Vertical Slice 1 — Observe-Mode Tracer specification — reviewed and **approved / implementation-ready** (2026-07-16)
 - [x] AI-Assisted Engineering Methodology architecture — **accepted** (MADR-0001, MADR-0002, principles P1–P7, lifecycle model, glossary; `.ai/methodology/`), released **v0.3.0**. Project-independent and agent-neutral; does not change the GHES architecture.
+- [x] Deterministic collaboration startup — repository maintenance (PR #30, merge `a999298`). Collaborator startup is now **deterministic**: `.ai/collaboration/load-order.md` is the single entry-point manifest → contract (role / authority / prohibitions, now **accepted**) → shared operator-guide S1 → session-bootstrap. Also corrected stale references (Engineering Standards hub Proposed → Adopted; ADR range → 0001–0015) and superseded `.ai/prompts/project/project-lifecycle.md`. Repository-process only; no change to the GHES architecture, methodology, or Architecture Version.
 
 ## Current Architecture Baseline
 
-`.ai/architecture/architecture-baseline-v1.md` — Baseline v1. The baseline document records Architecture Version 1.0.0; the current Architecture Version is **1.0.2** (see Architecture Refinements Since Baseline v1). Baseline v2 is not published for this refinement.
+`.ai/architecture/architecture-baseline-v1.md` — Baseline v1. The baseline document records Architecture Version 1.0.0; the current Architecture Version is **1.0.3** (see Architecture Refinements Since Baseline v1). Baseline v2 is not published for this refinement.
 
 ## Versions
 
-- Architecture Version: 1.0.2 (Baseline v1 records 1.0.0; see Architecture Refinements Since Baseline v1)
+- Architecture Version: 1.0.3 (Baseline v1 records 1.0.0; see Architecture Refinements Since Baseline v1)
 - Repository Version: v0.3.0
 
-**Repository Version** tracks the latest repository-wide release tag. It is a single generic field: it does not distinguish product from methodology release streams. Architectural maturity is tracked separately by **Architecture Version** (1.0.2) and **Architecture Baseline** (v1); a repository release does not change either, and Baseline v1 / Architecture Version 1.0.2 remain current. Independent release streams, if ever needed, require explicit version fields or separate repositories — they are not inferred through this field.
+**Repository Version** tracks the latest repository-wide release tag. It is a single generic field: it does not distinguish product from methodology release streams. Architectural maturity is tracked separately by **Architecture Version** (1.0.3) and **Architecture Baseline** (v1); a repository release does not change either, and Baseline v1 / Architecture Version 1.0.3 remain current. Independent release streams, if ever needed, require explicit version fields or separate repositories — they are not inferred through this field.
 
 ### Repository releases
 
@@ -57,6 +58,10 @@ Applied downstream: Domain Model invariant 4 and header; `CONTEXT.md` (Authorita
 **ADR-0014 — Execution Digest: a versioned root commitment to an Execution's evidence.** `docs/adr/0014-execution-digest-root-commitment.md`, status **accepted** (2026-07-15). ADR-0009 names "execution digest" among Authoritative Evidence contents but never defines it, and the term appeared nowhere else in the repository — a specification could not supply it, because the term is architectural. ADR-0014 defines the Execution Digest as the deterministic, versioned root commitment to an Execution's evidence; version 1 is the canonical content hash of the Execution Manifest, and is the only supported computation. The digest is recorded outside the manifest (a manifest containing its own hash is self-referential) and verified during evidence validation before Derived Reports are generated; a recomputed/recorded mismatch fails verification as tamper-suspect, with neither value presumed trustworthy. Raised by specification review of Vertical Slice 1 — Observe-Mode Tracer.
 
 Applied downstream: `CONTEXT.md` (Execution Digest); Domain Model (evidence entities, relationships, header); the slice specification (Solution step 7, Execution boundary and Report Derivation seams, stories 23 and 32, digest recording location and verification point, AC 10, S10).
+
+**ADR-0015 — Three-valued authority selection: undeterminable authority is distinct from proven conflict and from absent authority.** `docs/adr/0015-three-valued-authority-selection.md`, status **accepted** (2026-07-19). Refines ADR-0005 and ADR-0013 for the three-valued applicability of ADR-0003: a candidate authoritative binding whose scope applicability is `Unknown` is neither counted as authority nor excluded; authority-undeterminable — one applicable binding with an undetermined competitor, or two or more undetermined candidates with none applicable — yields a terminal pair-level Policy Outcome and Coverage State `Unknown` with Execution Status `CompleteWithGaps`, distinct from proven conflict (`Complete`) and from absent authority. Introduces the minimal two-member Unknown Classification closed set (`IncompleteObservation` / `GovernanceResult`), from which Execution Status derives. Reverses no accepted ADR; completes a previously-undefined case rather than adding a capability. Resolves issue #22; raised during Vertical Slice 1 T2/T3 implementation.
+
+Applied downstream: `CONTEXT.md` (Authoritative Binding, Execution Status, Unknown Classification); Domain Model (invariant 4, closed-set inventory); the slice specification (authority selection §141, Execution Status rule §137, AC 3, AC 17, story 36, S17, reference bundle). Navigation carry-forward: the next Architecture Baseline links to ADR-0015 from ADR-0005 and ADR-0013 (Baseline v1 is immutable and not edited). This advances the Architecture Version to **1.0.3** — patch, on the same basis as 1.0.1/1.0.2: it completes previously-undefined (three-valued authority selection) and previously-required-but-undefined (ADR-0010's "Unknown counts with reasons") architecture, breaks no conforming implementation (none is built yet), and the new closed set completes an already-required concept rather than adding a capability.
 
 **Architecture Version 1.0.2** — patch, on the same reasoning as 1.0.1. ADR-0013 and ADR-0014 each add no capability, reverse no accepted decision, and create no implementation incompatibility (nothing is built yet). ADR-0014 defines a term ADR-0009 already required rather than introducing a new concept, and its one Domain Model entity row records an architectural fact that was already implied. Both clarify previously under-specified architecture.
 
@@ -90,7 +95,7 @@ The major test is the operational one: it is decidable, where "did the Domain Mo
 
 **Delivered:** Vertical Slice 1 **T0 — evidence spine** (PR #16), **T1 — smallest governed evaluation** (PR #19), **T2 — scope resolution, three-result contract & Unknown propagation** (PR #23, merge `8420200`), and **T3 — scope combinators (`any`/`all`/`not`) under three-valued logic** (PR #24, merge `daa802b`) are merged to `main`. Together they establish the two public seams, the frozen execution-integrity contract, a deterministic ungoverned execution, the minimal governed Compliant/Covered path, Cannot-Determine → Unknown applicability propagation, and recursive three-valued scope resolution; 14 tests green.
 
-**Active next work item:** **T4 — authority conflict & effective periods** (Slice 1 of 7). The T4 gate opens with a **governance decision, not code**: the `Applicable`+`Unknown` authority-selection semantics are undefined in ADR-0005/0013 and are tracked open in **issue #22** — settle them (grill-with-docs / an ADR-0005/0013 refinement) before implementing authority-conflict resolution. The proven-overlap case (≥2 `Applicable` → Policy Outcome and Coverage `Unknown`) and effective-period activation are already defined by ADR-0005/0013 and ADR-0010; `select_authoritative_binding` currently fails loud on the undetermined case.
+**Active next work item:** **T4 — authority conflict & effective periods** (Slice 1 of 7), in review on `feat/slice1-t4-authority-conflict` (not yet merged). The **ADR-0015 authority-selection decision table is fully implemented and covered** by seam-level tests — every row: ungoverned (A=0/U=0), single-Applicable governed (A=1/U=0), proven conflict (A≥2 → one terminal official Policy/Coverage `Unknown`, `authority_conflict`, `GovernanceResult`, Execution Status `Complete`), authority-undeterminable (A=1/U≥1 and A=0/U≥2 → `Unknown`, `authority_undeterminable`, `IncompleteObservation`, `CompleteWithGaps`), and single-Unknown scope-undetermined (A=0/U=1). **AC 5 / S5 / §147 (proven conflict across divergent policy versions) is now implemented**: two overlapping authoritative bindings on divergent versions (v1 `{R1,R2}`, v2 `{R1,R3}`) yield the single terminal official `Unknown` result plus per-binding **explanatory-only** requirement evidence evaluated under each binding's own version, an `authority_conflict` finding recording both binding identities, versions, requirement sets, and the explicit shared / only-in-each requirement-set divergence, and **no synthesized official aggregate** (ADR-0013 no-synthesis exercised, not merely stated); explanatory evidence never reaches official compliance, coverage, or accounting. Execution Status derives from the recorded Unknown Classification. Policy documents are indexed by `(id, version)` so each policy-id × repository pair is processed exactly once and a binding resolves its declared version to its own requirement set; `select_authoritative_binding` fails loud only on genuinely unsupported inputs, and the engine now also fails loud with a contextual `BundleError` on a **duplicate policy `(id, version)` document** and on a **binding that references an absent policy version**. The **effective-period boundary contract (S7/AC7) is covered by characterization** — `test_effective_periods.py` verifies the half-open `[start, end)` behavior through the seam (active at `effective_start`, inactive at `effective_end`, inactive future-dated); `_binding_active` implements it (T1).
 
 **Authoritative standards:** the Engineering Standards hub and Python Coding Standard (`docs/standards/`) are adopted (PR #17) and authoritative.
 
@@ -132,6 +137,7 @@ Delivered by later slices of the sequence, **not** by this slice: Desired-State 
 ## Deferred
 
 - Architecture-versioning rules — versioning by semantic change, and the Discovery/Refinement ADR distinction (evidence and proposal recorded under Architecture Refinements Since Baseline v1; revisit after Phase 2)
+- Collaboration contract engine-neutrality — generalize the contract's "Response for Claude" handoff wording to a neutral "implementation participant" (recorded during PR #30 final review; not required for deterministic startup; drive by observed operational need)
 - Event-driven execution
 - Automatic remediation
 - Emergency-suspension path definition

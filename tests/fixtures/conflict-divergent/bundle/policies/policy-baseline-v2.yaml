@@ -1,0 +1,22 @@
+id: policy.baseline
+version: 2
+purpose: Baseline security controls — version 2 requirement set {R1, R3}.
+requirements:
+  # R1 — shared with version 1.
+  - id: req.secret-scanning
+    strategy:
+      identifier: PredicateEvaluation
+      version: 1
+    predicate:
+      equals:
+        setting: secret_scanning
+        value: enabled
+  # R3 — only in version 2.
+  - id: req.branch-protection
+    strategy:
+      identifier: PredicateEvaluation
+      version: 1
+    predicate:
+      equals:
+        setting: branch_protection
+        value: enabled
