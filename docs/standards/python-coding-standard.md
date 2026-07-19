@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Status** | **Proposed** — becomes authoritative **on merge of its governance PR to `main`** (the `RequirePR` mechanism). See "Adoption & binding" below. |
+| **Status** | **Adopted** (PR #17) — authoritative. Adoption occurred **on merge of its governance PR to `main`** (the `RequirePR` mechanism), which has happened. See "Adoption & binding" below. |
 | **Applies to** | Python under `src/` and `tests/` in `ghes-governance` |
 | **Normative keywords** | MUST / MUST NOT / SHOULD / SHOULD NOT / MAY, per RFC 2119 |
 | **Referenced by** | `engineering-standards.md` (Python spoke); `code-review` skill Standards axis; `codebase-design` |
