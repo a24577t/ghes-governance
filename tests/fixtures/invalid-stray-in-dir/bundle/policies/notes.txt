@@ -1,0 +1,1 @@
+operator notes — not a desired-state artifact

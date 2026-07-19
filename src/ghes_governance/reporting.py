@@ -26,6 +26,16 @@ class ReportBundle:
     markdown: str
 
 
+def _item_payload(items: dict[str, dict[str, Any]], kind: str, key: str) -> list[dict[str, Any]]:
+    """Return the ``key`` list from evidence item ``kind``'s payload, or ``[]`` when the item is
+    absent — a Failed Execution omits the compliance/coverage/provenance items entirely."""
+    item = items.get(kind)
+    if item is None:
+        return []
+    value = item["payload"].get(key, [])
+    return value if isinstance(value, list) else []
+
+
 def derive_reports(
     *,
     store_root: str | Path,
@@ -50,10 +60,10 @@ def derive_reports(
     # evidence carries only the status and the bundle-validation configuration evidence; the
     # compliance/coverage/provenance items are absent and default to empty here.
     status = items["execution_status"]["payload"]
-    provenance = items.get("binding_provenance", {}).get("payload", {}).get("pairs", [])
-    results = items.get("policy_results", {}).get("payload", {}).get("results", [])
-    findings = items.get("governance_findings", {}).get("payload", {}).get("findings", [])
-    validation_errors = items.get("bundle_validation", {}).get("payload", {}).get("errors", [])
+    provenance = _item_payload(items, "binding_provenance", "pairs")
+    results = _item_payload(items, "policy_results", "results")
+    findings = _item_payload(items, "governance_findings", "findings")
+    validation_errors = _item_payload(items, "bundle_validation", "errors")
     ungoverned = [pair for pair in provenance if not pair.get("governed", False)]
 
     compliance_outcomes = [

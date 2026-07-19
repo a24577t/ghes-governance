@@ -78,6 +78,36 @@ def _validate_artifact_layout(root: Path) -> list[dict[str, Any]]:
     return errors
 
 
+def _scan_artifact_dir(directory: Path) -> tuple[list[Path], list[dict[str, Any]]]:
+    """Return the ``*.yaml`` artifacts in a supported directory and any layout errors.
+
+    Whole-bundle discipline reaches inside a supported directory too: a non-hidden entry that
+    is not a ``.yaml`` document — a stray file, a nested directory — is unsupported content and
+    is recorded, never silently skipped (Implementation Decision line 138). Hidden entries
+    (``.gitkeep`` and the like) are git/tooling placeholders, not desired state, and are
+    ignored.
+    """
+    if not directory.is_dir():
+        return [], []
+    yaml_paths: list[Path] = []
+    errors: list[dict[str, Any]] = []
+    for entry in sorted(directory.iterdir(), key=lambda p: p.name):
+        if entry.name.startswith("."):
+            continue
+        if entry.is_file() and entry.suffix == ".yaml":
+            yaml_paths.append(entry)
+        else:
+            errors.append(
+                _error(
+                    "unsupported-artifact",
+                    f"{directory.name}/{entry.name}",
+                    f"unsupported entry {entry.name!r} in {directory.name}/; this release reads "
+                    "only .yaml artifacts",
+                )
+            )
+    return yaml_paths, errors
+
+
 def _validate_policies(root: Path) -> tuple[dict[str, set[Any]], list[dict[str, Any]]]:
     """Validate each policy document; return the versions declared per policy id and the errors.
 
@@ -85,11 +115,11 @@ def _validate_policies(root: Path) -> tuple[dict[str, set[Any]], list[dict[str, 
     referential integrity can be checked without re-parsing (a duplicate (id, version) is a
     defect, not a second version).
     """
-    errors: list[dict[str, Any]] = []
+    paths, errors = _scan_artifact_dir(root / "policies")
     versions: dict[str, set[Any]] = {}
     seen: dict[tuple[str, Any], str] = {}
 
-    for path in sorted((root / "policies").glob("*.yaml")):
+    for path in paths:
         artifact = f"policies/{path.name}"
         doc, parse_error = _load_yaml(path, artifact)
         if parse_error is not None:
@@ -141,9 +171,9 @@ def _validate_policies(root: Path) -> tuple[dict[str, set[Any]], list[dict[str, 
 
 def _validate_bindings(root: Path, policy_versions: dict[str, set[Any]]) -> list[dict[str, Any]]:
     """Validate each binding document: structure, supported mode/role, and referential integrity."""
-    errors: list[dict[str, Any]] = []
+    paths, errors = _scan_artifact_dir(root / "bindings")
 
-    for path in sorted((root / "bindings").glob("*.yaml")):
+    for path in paths:
         artifact = f"bindings/{path.name}"
         doc, parse_error = _load_yaml(path, artifact)
         if parse_error is not None:

@@ -34,6 +34,7 @@ INVALID_BUNDLES = [
     ("invalid-shadow-role", "unsupported-evaluation-role", "bindings/binding-baseline.yaml"),
     ("invalid-relief", "unsupported-artifact", "relief"),
     ("invalid-unreferenced-artifact", "unsupported-artifact", "comparison-profiles"),
+    ("invalid-stray-in-dir", "unsupported-artifact", "policies/notes.txt"),
     ("invalid-duplicate-policy", "duplicate-policy", "policies/policy-duplicate.yaml"),
     ("invalid-dangling-binding", "dangling-binding-reference", "bindings/binding-baseline.yaml"),
 ]
