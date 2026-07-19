@@ -80,6 +80,19 @@ def _authority_conflict_finding(
     }
 
 
+def _unknown_result(
+    policy_id: str, repository_id: str, classification: str
+) -> dict[str, Any]:
+    """A terminal Unknown pair result — the causal record carrying its Unknown Classification."""
+    return {
+        "policy_id": policy_id,
+        "repository_id": repository_id,
+        "policy_outcome": PolicyOutcome.UNKNOWN.value,
+        "coverage_state": CoverageState.UNKNOWN.value,
+        "unknown_classification": classification,
+    }
+
+
 def run_execution(
     *,
     bundle_path: str | Path,
@@ -142,13 +155,9 @@ def run_execution(
                     )
                 )
                 results.append(
-                    {
-                        "policy_id": policy_id,
-                        "repository_id": repo["id"],
-                        "policy_outcome": PolicyOutcome.UNKNOWN.value,
-                        "coverage_state": CoverageState.UNKNOWN.value,
-                        "unknown_classification": UnknownClassification.GOVERNANCE_RESULT.value,
-                    }
+                    _unknown_result(
+                        policy_id, repo["id"], UnknownClassification.GOVERNANCE_RESULT.value
+                    )
                 )
                 governance_findings.append(
                     _authority_conflict_finding(policy_id, repo["id"], selection.conflicting)
@@ -161,13 +170,9 @@ def run_execution(
 
             if applicability is ApplicabilityOutcome.UNKNOWN:
                 results.append(
-                    {
-                        "policy_id": policy_id,
-                        "repository_id": repo["id"],
-                        "policy_outcome": PolicyOutcome.UNKNOWN.value,
-                        "coverage_state": CoverageState.UNKNOWN.value,
-                        "unknown_classification": UnknownClassification.INCOMPLETE_OBSERVATION.value,
-                    }
+                    _unknown_result(
+                        policy_id, repo["id"], UnknownClassification.INCOMPLETE_OBSERVATION.value
+                    )
                 )
                 unknown += 1
             else:
