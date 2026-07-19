@@ -28,6 +28,7 @@ Architecture Baseline v1 is immutable and predates this split; it is **not** edi
 - [x] Architecture Baseline v1 published
 - [x] Vertical Slice 1 — Observe-Mode Tracer specification — reviewed and **approved / implementation-ready** (2026-07-16)
 - [x] AI-Assisted Engineering Methodology architecture — **accepted** (MADR-0001, MADR-0002, principles P1–P7, lifecycle model, glossary; `.ai/methodology/`), released **v0.3.0**. Project-independent and agent-neutral; does not change the GHES architecture.
+- [x] Deterministic collaboration startup — repository maintenance (PR #30, merge `a999298`). Collaborator startup is now **deterministic**: `.ai/collaboration/load-order.md` is the single entry-point manifest → contract (role / authority / prohibitions, now **accepted**) → shared operator-guide S1 → session-bootstrap. Also corrected stale references (Engineering Standards hub Proposed → Adopted; ADR range → 0001–0015) and superseded `.ai/prompts/project/project-lifecycle.md`. Repository-process only; no change to the GHES architecture, methodology, or Architecture Version.
 
 ## Current Architecture Baseline
 
@@ -136,6 +137,7 @@ Delivered by later slices of the sequence, **not** by this slice: Desired-State 
 ## Deferred
 
 - Architecture-versioning rules — versioning by semantic change, and the Discovery/Refinement ADR distinction (evidence and proposal recorded under Architecture Refinements Since Baseline v1; revisit after Phase 2)
+- Collaboration contract engine-neutrality — generalize the contract's "Response for Claude" handoff wording to a neutral "implementation participant" (recorded during PR #30 final review; not required for deterministic startup; drive by observed operational need)
 - Event-driven execution
 - Automatic remediation
 - Emergency-suspension path definition
