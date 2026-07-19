@@ -1,3 +1,14 @@
+> **SUPERSEDED — historical, retained for traceability. Do not follow.**
+> This lifecycle sketch predates the accepted methodology. It describes an
+> engine-specific (ChatGPT / Claude) role split and a "Project Handoff" model
+> (`create-project-handoff.md` → `.ai/working/project-handoff.md`) that no
+> longer exist. The authoritative sources are:
+> - lifecycle — [`../../methodology/lifecycle-model.md`](../../methodology/lifecycle-model.md);
+> - session startup routing — [`../methodology/operator-guide.md`](../methodology/operator-guide.md) → [`../methodology/session-bootstrap.md`](../methodology/session-bootstrap.md);
+> - continuity — [`../methodology/create-repository-continuity.md`](../methodology/create-repository-continuity.md) → `.ai/working/repository-continuity.md`;
+> - collaboration startup — [`../../collaboration/load-order.md`](../../collaboration/load-order.md).
+> This file is kept, not deleted, to preserve repository traceability.
+
 AI-Assisted Engineering Lifecycle
 Phase 1 — Active Working Session
 
