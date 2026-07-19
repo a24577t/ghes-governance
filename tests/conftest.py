@@ -103,3 +103,13 @@ def undeterminable_multi_bundle() -> Path:
 @pytest.fixture
 def undeterminable_multi_estate() -> Path:
     return FIXTURES / "undeterminable-multi" / "estate"
+
+
+@pytest.fixture
+def effective_period_bundle() -> Path:
+    return FIXTURES / "effective-period" / "bundle"
+
+
+@pytest.fixture
+def effective_period_estate() -> Path:
+    return FIXTURES / "effective-period" / "estate"
