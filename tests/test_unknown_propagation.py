@@ -46,3 +46,19 @@ def test_cannot_determine_scope_attribute_propagates_to_unknown(
         and c["coverage_state"] == "Unknown"
         for c in report["coverage"]["states"]
     )
+
+    # The one causal Unknown is classified IncompleteObservation; no requirement set is
+    # evaluated; no authority finding is emitted (a single undetermined candidate); and the
+    # pair is governed — undeterminable applicability, never surfaced as absent authority.
+    assert report["accounting"]["evaluated"] == 0
+    assert any(
+        o["policy_id"] == "policy.baseline"
+        and o["repository_id"] == "octo-org/service-c"
+        and o["unknown_classification"] == "IncompleteObservation"
+        for o in report["compliance"]["outcomes"]
+    )
+    assert report["findings"] == []
+    assert not any(
+        p["policy_id"] == "policy.baseline" and p["repository_id"] == "octo-org/service-c"
+        for p in report["ungoverned_pairs"]
+    )

@@ -73,3 +73,53 @@ def not_unknown_bundle() -> Path:
 @pytest.fixture
 def not_unknown_estate() -> Path:
     return FIXTURES / "combinator-not-unknown" / "estate"
+
+
+@pytest.fixture
+def conflict_bundle() -> Path:
+    return FIXTURES / "conflict-proven" / "bundle"
+
+
+@pytest.fixture
+def conflict_estate() -> Path:
+    return FIXTURES / "conflict-proven" / "estate"
+
+
+@pytest.fixture
+def conflict_divergent_bundle() -> Path:
+    return FIXTURES / "conflict-divergent" / "bundle"
+
+
+@pytest.fixture
+def conflict_divergent_estate() -> Path:
+    return FIXTURES / "conflict-divergent" / "estate"
+
+
+@pytest.fixture
+def undeterminable_mixed_bundle() -> Path:
+    return FIXTURES / "undeterminable-mixed" / "bundle"
+
+
+@pytest.fixture
+def undeterminable_mixed_estate() -> Path:
+    return FIXTURES / "undeterminable-mixed" / "estate"
+
+
+@pytest.fixture
+def undeterminable_multi_bundle() -> Path:
+    return FIXTURES / "undeterminable-multi" / "bundle"
+
+
+@pytest.fixture
+def undeterminable_multi_estate() -> Path:
+    return FIXTURES / "undeterminable-multi" / "estate"
+
+
+@pytest.fixture
+def effective_period_bundle() -> Path:
+    return FIXTURES / "effective-period" / "bundle"
+
+
+@pytest.fixture
+def effective_period_estate() -> Path:
+    return FIXTURES / "effective-period" / "estate"

@@ -1,0 +1,18 @@
+enterprise: acme
+ghes_version: "3.13"
+organizations:
+  - octo-org
+repositories:
+  # One authoritative binding is definitely Applicable (organization matches); a second
+  # authoritative binding's scope depends on 'visibility', which the provider cannot
+  # determine → authority is undeterminable (A=1, U=1).
+  - id: octo-org/service-h
+    organization: octo-org
+    name: service-h
+    archived: false
+    fork: false
+    ghes_version: "3.13"
+    undeterminable:
+      - visibility
+    settings:
+      secret_scanning: enabled

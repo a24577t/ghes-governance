@@ -93,3 +93,12 @@ def findings_payload(findings: list[dict[str, Any]]) -> dict[str, Any]:
 def policy_results_payload(results: list[dict[str, Any]]) -> dict[str, Any]:
     """Per governed (policy, repository) pair: aggregated Policy Outcome and Coverage State."""
     return {"results": sorted(results, key=lambda r: (r["policy_id"], r["repository_id"]))}
+
+
+def governance_findings_payload(findings: list[dict[str, Any]]) -> dict[str, Any]:
+    """Governance-configuration findings (e.g. authority conflict), sorted deterministically."""
+    return {
+        "findings": sorted(
+            findings, key=lambda f: (f["kind"], f["policy_id"], f["repository_id"])
+        )
+    }

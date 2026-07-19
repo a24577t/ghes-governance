@@ -1,0 +1,31 @@
+enterprise: acme
+ghes_version: "3.13"
+organizations:
+  - octo-org
+repositories:
+  # One repo per AC7 boundary; each has a single authoritative binding scoped to it by name,
+  # differing only in effective period relative to the fixed timestamp (2026-01-01T00:00:00Z).
+  - id: octo-org/at-start
+    organization: octo-org
+    name: at-start
+    archived: false
+    fork: false
+    ghes_version: "3.13"
+    settings:
+      secret_scanning: enabled
+  - id: octo-org/at-end
+    organization: octo-org
+    name: at-end
+    archived: false
+    fork: false
+    ghes_version: "3.13"
+    settings:
+      secret_scanning: enabled
+  - id: octo-org/future
+    organization: octo-org
+    name: future
+    archived: false
+    fork: false
+    ghes_version: "3.13"
+    settings:
+      secret_scanning: enabled

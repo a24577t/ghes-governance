@@ -49,6 +49,7 @@ def derive_reports(
     provenance = items["binding_provenance"]["payload"]["pairs"]
     status = items["execution_status"]["payload"]
     results = items["policy_results"]["payload"]["results"]
+    findings = items["governance_findings"]["payload"]["findings"]
     ungoverned = [pair for pair in provenance if not pair.get("governed", False)]
 
     compliance_outcomes = [
@@ -56,6 +57,11 @@ def derive_reports(
             "policy_id": r["policy_id"],
             "repository_id": r["repository_id"],
             "policy_outcome": r["policy_outcome"],
+            **(
+                {"unknown_classification": r["unknown_classification"]}
+                if "unknown_classification" in r
+                else {}
+            ),
         }
         for r in results
     ]
@@ -77,6 +83,7 @@ def derive_reports(
         "accounting": status["accounting"],
         "compliance": {"outcomes": compliance_outcomes},
         "coverage": {"states": coverage_states},
+        "findings": findings,
         "ungoverned_pairs": ungoverned,
         "citations": {
             "execution_digest": content_hash(manifest),

@@ -1,0 +1,13 @@
+policy: policy.baseline
+policy_version: 2
+evaluation_role: Authoritative
+enforcement_mode: Observe
+effective_start: "2025-01-01T00:00:00Z"
+effective_end: "2027-01-01T00:00:00Z"
+# Also definitely Applicable: repository name matches. Carries policy version 2 ({R1, R3}) —
+# a divergent requirement set from binding-a, so authority is in proven conflict *across
+# divergent policy versions* for (policy.baseline, octo-org/service-g).
+scope:
+  equals:
+    attribute: name
+    value: service-g

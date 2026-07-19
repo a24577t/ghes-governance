@@ -1,0 +1,19 @@
+enterprise: acme
+ghes_version: "3.13"
+organizations:
+  - octo-org
+repositories:
+  # No authoritative binding is definitely Applicable; two authoritative bindings each turn
+  # on a distinct undeterminable attribute (visibility, topic) → both resolve Unknown
+  # (A=0, U=2). Authority cannot be established.
+  - id: octo-org/service-i
+    organization: octo-org
+    name: service-i
+    archived: false
+    fork: false
+    ghes_version: "3.13"
+    undeterminable:
+      - visibility
+      - topic
+    settings:
+      secret_scanning: enabled
