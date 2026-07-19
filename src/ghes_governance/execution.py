@@ -34,6 +34,7 @@ from .evaluation import (
 )
 from .model import (
     binding_provenance_payload,
+    bundle_validation_payload,
     evidence_item,
     execution_status_payload,
     findings_payload,
@@ -43,6 +44,7 @@ from .model import (
     policy_results_payload,
 )
 from .store import write_execution
+from .validation import validate_bundle
 
 _INVENTORY_FIELDS = ("id", "organization", "name", "visibility", "archived", "fork", "ghes_version")
 
@@ -222,6 +224,38 @@ def _authority_undeterminable_finding(
     }
 
 
+def _write_failed_execution(
+    *,
+    store_root: str | Path,
+    execution_id: str,
+    evaluation_scope: dict[str, Any],
+    evaluation_timestamp: str,
+    engine_version: str,
+    errors: list[dict[str, Any]],
+) -> ExecutionResult:
+    """Write a Failed Execution: configuration evidence plus a Failed Execution Status (T5).
+
+    Reached when whole-bundle validation rejects the desired state. Discovery and evaluation
+    never ran, so the accounting is zero and no inventory, binding-provenance, findings, or
+    policy-results are produced — only the validation evidence and the status flow through the
+    frozen integrity chain (manifest + external digest). No authoritative compliance or
+    coverage results are produced (AC 12).
+    """
+    status = execution_status_payload(
+        ExecutionStatus.FAILED, discovered=0, evaluated=0, unknown=0
+    )
+    validation = bundle_validation_payload(errors)
+    items = [
+        ("bundle-validation.json", evidence_item("bundle_validation", execution_id, validation)),
+        ("execution-status.json", evidence_item("execution_status", execution_id, status)),
+    ]
+    header = manifest_header(execution_id, evaluation_scope, evaluation_timestamp, engine_version)
+    exec_dir = write_execution(store_root, execution_id, header, items)
+    return ExecutionResult(
+        execution_id=execution_id, status=ExecutionStatus.FAILED, execution_dir=exec_dir
+    )
+
+
 def run_execution(
     *,
     bundle_path: str | Path,
@@ -244,7 +278,25 @@ def run_execution(
     Execution Digest under ``store_root/<execution_id>/``. The Evaluation Timestamp and
     execution identifier are injected — no wall clock is read. Raises ``BundleError`` if a
     policy or repository lacks its id.
+
+    Bundle validity is not an Execution-creation precondition (Execution Lifecycle): the
+    Execution exists, then the desired-state bundle is validated before discovery or
+    evaluation. A structurally malformed or semantically unsupported bundle — including
+    unsupported content that appears unreferenced — ends the Execution ``Failed`` with
+    configuration evidence and no authoritative compliance or coverage results (AC 12),
+    never a raised error.
     """
+    validation_errors = validate_bundle(bundle_path)
+    if validation_errors:
+        return _write_failed_execution(
+            store_root=store_root,
+            execution_id=execution_id,
+            evaluation_scope=evaluation_scope,
+            evaluation_timestamp=evaluation_timestamp,
+            engine_version=engine_version,
+            errors=validation_errors,
+        )
+
     bundle = load_bundle(bundle_path)
     estate = load_estate(estate_path)
 

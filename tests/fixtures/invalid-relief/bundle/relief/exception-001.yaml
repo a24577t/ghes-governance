@@ -1,0 +1,5 @@
+id: relief.exception.001
+type: GovernanceException
+targets:
+  policy: policy.baseline
+  requirement: req.secret-scanning

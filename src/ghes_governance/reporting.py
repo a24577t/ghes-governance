@@ -46,10 +46,14 @@ def derive_reports(
     """
     manifest, items = read_verified_execution(store_root, execution_id)
 
-    provenance = items["binding_provenance"]["payload"]["pairs"]
+    # A Failed Execution (T5 bundle validation) discovers and evaluates nothing, so its
+    # evidence carries only the status and the bundle-validation configuration evidence; the
+    # compliance/coverage/provenance items are absent and default to empty here.
     status = items["execution_status"]["payload"]
-    results = items["policy_results"]["payload"]["results"]
-    findings = items["governance_findings"]["payload"]["findings"]
+    provenance = items.get("binding_provenance", {}).get("payload", {}).get("pairs", [])
+    results = items.get("policy_results", {}).get("payload", {}).get("results", [])
+    findings = items.get("governance_findings", {}).get("payload", {}).get("findings", [])
+    validation_errors = items.get("bundle_validation", {}).get("payload", {}).get("errors", [])
     ungoverned = [pair for pair in provenance if not pair.get("governed", False)]
 
     compliance_outcomes = [
@@ -84,6 +88,7 @@ def derive_reports(
         "compliance": {"outcomes": compliance_outcomes},
         "coverage": {"states": coverage_states},
         "findings": findings,
+        "bundle_validation": validation_errors,
         "ungoverned_pairs": ungoverned,
         "citations": {
             "execution_digest": content_hash(manifest),
@@ -132,6 +137,17 @@ def _render_markdown(report: dict[str, Any]) -> str:
             )
     else:
         lines.append("No governed pair produced a Policy Outcome or Coverage State.")
+
+    if report["bundle_validation"]:
+        lines += [
+            "",
+            f"## Bundle validation ({len(report['bundle_validation'])} error(s))",
+            "",
+            "The Execution is Failed: the desired-state bundle was rejected before discovery.",
+            "",
+        ]
+        for err in report["bundle_validation"]:
+            lines.append(f"- `{err['artifact']}` — {err['code']}: {err['detail']}")
 
     lines += ["", f"## Ungoverned pairs ({len(report['ungoverned_pairs'])})", ""]
     for pair in report["ungoverned_pairs"]:

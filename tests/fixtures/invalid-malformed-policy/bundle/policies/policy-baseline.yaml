@@ -1,0 +1,11 @@
+version: 1
+purpose: A policy with no id.
+requirements:
+  - id: req.secret-scanning
+    strategy:
+      identifier: PredicateEvaluation
+      version: 1
+    predicate:
+      equals:
+        setting: secret_scanning
+        value: enabled
