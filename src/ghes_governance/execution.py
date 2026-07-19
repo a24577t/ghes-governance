@@ -17,6 +17,7 @@ from typing import Any
 
 from . import ENGINE_VERSION
 from .bundle import load_bundle, load_estate
+from .canonical import content_hash
 from .enums import (
     ApplicabilityOutcome,
     CoverageState,
@@ -70,19 +71,113 @@ def _pair_provenance(
     }
 
 
-def _authority_conflict_finding(
-    policy_id: str, repository_id: str, conflicting: list[dict[str, Any]]
+def _index_policies(policies: list[dict[str, Any]]) -> dict[str, dict[Any, dict[str, Any]]]:
+    """Group policy documents by id then declared version.
+
+    Ensures each policy id is processed exactly once per repository and lets a binding's
+    declared policy version resolve to its own requirement set — so two documents that share
+    an id but carry divergent versions (and divergent requirement sets) coexist without the
+    pair being processed once per document.
+    """
+    indexed: dict[str, dict[Any, dict[str, Any]]] = {}
+    for policy in policies:
+        policy_id = policy.get("id")
+        if policy_id is None:
+            raise BundleError("bundle policy is missing 'id'")
+        version = policy.get("version")
+        versions = indexed.setdefault(policy_id, {})
+        if version in versions:
+            raise BundleError(
+                f"duplicate policy document for policy {policy_id!r} version {version!r}"
+            )
+        versions[version] = policy
+    return indexed
+
+
+def _policy_for_binding(
+    versions: dict[Any, dict[str, Any]], binding: dict[str, Any], policy_id: str
 ) -> dict[str, Any]:
-    """A governance-configuration finding enumerating the conflicting authoritative bindings."""
+    """Resolve a binding's declared policy version to its document.
+
+    Fails loud with a contextual ``BundleError`` when the declared version has no matching
+    document — the binding is never silently resolved to a different version.
+    """
+    version = binding.get("policy_version")
+    try:
+        return versions[version]
+    except KeyError:
+        raise BundleError(
+            f"binding for policy {policy_id!r} declares policy version {version!r} "
+            "with no matching policy document"
+        ) from None
+
+
+def _authority_conflict_finding(
+    policy_id: str,
+    repository_id: str,
+    conflicting: list[dict[str, Any]],
+    versions: dict[Any, dict[str, Any]],
+    repo: dict[str, Any],
+) -> dict[str, Any]:
+    """A governance-configuration finding for a proven authority conflict.
+
+    Enumerates every conflicting authoritative binding by its stable content identity, its
+    declared policy version, and its scope; records each binding's own requirement set and the
+    per-requirement outcomes it produces as EXPLANATORY-ONLY evidence — evaluated under that
+    binding's version and never contributing to the official pair outcome, accounting, or
+    coverage. States that no binding determined the official outcomes, and reports the shared
+    and per-binding requirement-set divergence. Requirement sets are never unioned or
+    synthesized across versions (ADR-0013 no-synthesis; ADR-0005/0015).
+    """
+    binding_entries: list[dict[str, Any]] = []
+    for binding in conflicting:
+        policy_doc = _policy_for_binding(versions, binding, policy_id)
+        requirement_ids = [req["id"] for req in policy_doc["requirements"]]
+        explanatory = evaluate_policy(policy_doc, repo)["findings"]
+        binding_entries.append(
+            {
+                "binding_id": content_hash(binding),
+                "policy_version": binding.get("policy_version"),
+                "scope": binding.get("scope"),
+                "requirement_ids": requirement_ids,
+                "explanatory_requirements": [
+                    {
+                        "requirement_id": f["requirement_id"],
+                        "requirement_outcome": f["requirement_outcome"],
+                    }
+                    for f in explanatory
+                ],
+            }
+        )
     return {
         "kind": "authority_conflict",
         "policy_id": policy_id,
         "repository_id": repository_id,
-        "conflicting_bindings": [
-            {"policy_version": b.get("policy_version"), "scope": b.get("scope")}
-            for b in conflicting
-        ],
+        "official_outcomes_determined": False,
+        "conflicting_bindings": binding_entries,
+        "requirement_set_divergence": _requirement_set_divergence(binding_entries),
     }
+
+
+def _requirement_set_divergence(binding_entries: list[dict[str, Any]]) -> dict[str, Any]:
+    """Shared vs per-binding-only requirement IDs across the conflicting bindings.
+
+    ``shared`` is the intersection of every binding's requirement set; each ``only_in`` entry
+    lists one binding's requirements not shared by all, keyed by that binding's stable
+    identity and version. Deterministically sorted; the union is never materialized as a
+    synthesized requirement set.
+    """
+    sets = [set(entry["requirement_ids"]) for entry in binding_entries]
+    shared = set.intersection(*sets) if sets else set()
+    only_in = [
+        {
+            "binding_id": entry["binding_id"],
+            "policy_version": entry["policy_version"],
+            "requirement_ids": sorted(set(entry["requirement_ids"]) - shared),
+        }
+        for entry in binding_entries
+    ]
+    return {"shared": sorted(shared), "only_in": only_in}
 
 
 def _unknown_result(
@@ -163,13 +258,12 @@ def run_execution(
     evaluated = 0
     unknown = 0
 
-    for policy in bundle["policies"]:
-        policy_id = policy.get("id")
-        if policy_id is None:
-            raise BundleError("bundle policy is missing 'id'")
+    policies_by_id = _index_policies(bundle["policies"])
+
+    for policy_id, versions in policies_by_id.items():
         for repo in repositories:
             selection = select_authoritative_binding(
-                bundle["bindings"], policy, repo, evaluation_timestamp
+                bundle["bindings"], policy_id, repo, evaluation_timestamp
             )
             if selection is None:
                 pairs.append(
@@ -194,7 +288,9 @@ def run_execution(
                     )
                 )
                 governance_findings.append(
-                    _authority_conflict_finding(policy_id, repo["id"], selection.conflicting)
+                    _authority_conflict_finding(
+                        policy_id, repo["id"], selection.conflicting, versions, repo
+                    )
                 )
                 unknown += 1
                 continue
@@ -232,7 +328,9 @@ def run_execution(
                 )
                 unknown += 1
             else:
-                evaluation = evaluate_policy(policy, repo)
+                evaluation = evaluate_policy(
+                    _policy_for_binding(versions, _binding, policy_id), repo
+                )
                 findings.extend(evaluation["findings"])
                 results.append(
                     {

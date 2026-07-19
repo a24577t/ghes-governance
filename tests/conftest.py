@@ -86,6 +86,16 @@ def conflict_estate() -> Path:
 
 
 @pytest.fixture
+def conflict_divergent_bundle() -> Path:
+    return FIXTURES / "conflict-divergent" / "bundle"
+
+
+@pytest.fixture
+def conflict_divergent_estate() -> Path:
+    return FIXTURES / "conflict-divergent" / "estate"
+
+
+@pytest.fixture
 def undeterminable_mixed_bundle() -> Path:
     return FIXTURES / "undeterminable-mixed" / "bundle"
 

@@ -56,25 +56,27 @@ class AuthorityUndeterminable:
 
 def select_authoritative_binding(
     bindings: list[dict[str, Any]],
-    policy: dict[str, Any],
+    policy_id: str,
     repo: dict[str, Any],
     evaluation_timestamp: str,
 ) -> tuple[dict[str, Any], ApplicabilityOutcome] | AuthorityConflict | AuthorityUndeterminable | None:
-    """Select the authoritative Observe binding for (policy, repo) and its applicability.
+    """Select the authoritative Observe binding for (policy id, repo) and its applicability.
 
-    Returns ``(binding, applicability)`` where applicability is Applicable or Unknown;
-    ``None`` when no active authoritative binding applies (a normal ungoverned state); an
-    ``AuthorityConflict`` when two or more Applicable bindings prove a conflict; or an
-    ``AuthorityUndeterminable`` when authority cannot be established — one binding applies and
-    at least one other's applicability is Unknown (A=1, U≥1), or none applies and two or more
-    are Unknown (A=0, U≥2). NotApplicable bindings are excluded.
+    Considers every active authoritative Observe binding bound to ``policy_id`` regardless of
+    its declared policy version (the caller resolves the selected binding's version to its
+    requirement set). Returns ``(binding, applicability)`` where applicability is Applicable
+    or Unknown; ``None`` when no active authoritative binding applies (a normal ungoverned
+    state); an ``AuthorityConflict`` when two or more Applicable bindings prove a conflict; or
+    an ``AuthorityUndeterminable`` when authority cannot be established — one binding applies
+    and at least one other's applicability is Unknown (A=1, U≥1), or none applies and two or
+    more are Unknown (A=0, U≥2). NotApplicable bindings are excluded.
     """
     candidates = [
         (binding, resolve_applicability(binding.get("scope"), repo))
         for binding in bindings
         if binding.get("evaluation_role") == EvaluationRole.AUTHORITATIVE.value
         and binding.get("enforcement_mode") == EnforcementMode.OBSERVE.value
-        and binding.get("policy") == policy["id"]
+        and binding.get("policy") == policy_id
         and _binding_active(binding, evaluation_timestamp)
     ]
     applicable = [b for b, outcome in candidates if outcome is ApplicabilityOutcome.APPLICABLE]
