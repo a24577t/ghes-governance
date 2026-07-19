@@ -36,13 +36,23 @@ Execution Status reflects completeness of **observation**, not the presence of `
 - Proven conflict (A≥2) stays `Complete` even when additional `Unknown` candidates coexist, because the conflict result is already forced and the undetermined candidates are not decision-relevant to it (report the gap only when the answer depends on what is not known).
 - Authority-undeterminable (A=1 & U≥1; A=0 & U≥2) and scope-undetermined (A=0 & U=1) are `CompleteWithGaps`: each `Unknown` depends on a scope value that could not be determined.
 
-## Representation — no new closed set
+## Representation — the smallest explicit classification
 
-No new `PolicyOutcome` / `CoverageState` / `ExecutionStatus` value (all reuse `Unknown` / `CompleteWithGaps`); no new finding-type enumeration. The only representational requirement is that completeness accounting distinguish, per `Unknown` pair, **whether it arose from incomplete observation** — which ADR-0010 already mandates ("Unknown counts with reasons"). Slice 1 needs exactly two reasons (incomplete-observation versus authority-ambiguity), and Execution Status is a function of whether any is incomplete-observation. This is the minimum change — expressible as a per-`Unknown` observation-incomplete predicate — and is deliberately **not** a broad `UnknownReason` taxonomy; a wider vocabulary, if ever needed, is a separate decision.
+No new `PolicyOutcome` / `CoverageState` / `ExecutionStatus` value (all reuse `Unknown` / `CompleteWithGaps`); no new finding-type enumeration. Deriving Execution Status *by reason* (not by `Unknown` count) requires exactly one explicit distinction: whether an `Unknown` reflects incomplete observation or a determined governance verdict. This ADR gives that distinction a ratified home as the smallest possible closed set — **Unknown Classification**, two members:
+
+- **`IncompleteObservation`** — the `Unknown` follows from a `CannotDetermine` provider result; observation of the declared scope was incomplete (scope-undetermined applicability, authority-undeterminable outcomes).
+- **`GovernanceResult`** — the `Unknown` is a determined governance verdict over fully observed inputs (authority conflict; unregistered evaluation strategy).
+
+Every `Unknown` in the completeness accounting records its classification, and **Execution Status derives from it**: `CompleteWithGaps` iff any recorded `Unknown` is `IncompleteObservation`, otherwise `Complete`. Both members are reachable in Slice 1 (`IncompleteObservation` via scenarios S3/S17; `GovernanceResult` via S5/S6), so the closed set ships complete under the "full closed sets" rule (spec Recorded Decision 3) and reconciles `CONTEXT.md`'s accounting with ADR-0010's "Unknown counts with reasons." It is deliberately two-valued — the minimum needed to compute Execution Status — and is **not** a broad `UnknownReason` taxonomy; a wider vocabulary, if ever needed, is a separate decision.
+
+## Terminal authority-selection results
+
+The proven-conflict (A≥2), authority-undeterminable (A=1 & U≥1; A=0 & U≥2), and scope-undetermined single-candidate (A=0 & U=1) outcomes are **terminal authority-selection results**: the pair's official Policy Outcome and Coverage State are set to `Unknown` at authority selection, **before — and never derived from — requirement-level evaluation or coverage aggregation.** This generalizes ADR-0013's coverage precedence-0 (authority ambiguity → no determinable intended control set → Coverage `Unknown` decided before ADR-0007 aggregation) to all three cases, preserving ADR-0007's exclusivity (coverage is produced only by the engine-owned rule). For a proven conflict, each `Applicable` binding is still evaluated as explanatory evidence under its own policy version (ADR-0013) but yields no official outcome; in the other two cases no requirement set is evaluated for the pair.
 
 ## Consequences
 
 - ADR-0005 and ADR-0013's authority reasoning extends from two-valued (matches / doesn't) to three-valued (Applicable / Unknown / NotApplicable) selection; their proven-conflict and absent-authority cases are unchanged.
 - The engine derives Execution Status from incomplete-observation reasons, not from the `Unknown` count — correcting a shortcut valid only while every `Unknown` was scope-caused.
 - Issue #22 is resolved by this ADR.
-- The next Architecture Baseline carries forward navigation to this ADR from ADR-0005 and ADR-0013; STATUS.md records ADR-0015 among the refinements since Baseline v1 on acceptance.
+- This refinement is applied downstream in the same change: `CONTEXT.md` (Authoritative Binding; Execution Status; the new Unknown Classification closed set) and the Domain Model (invariant 4; the closed-set inventory). The Vertical Slice 1 specification is refined in the same PR.
+- The next Architecture Baseline carries forward navigation to this ADR from ADR-0005 and ADR-0013; `STATUS.md` records ADR-0015 among the refinements since Baseline v1, and the baseline navigation is added, **on acceptance** — not in this proposed-review PR.
