@@ -9,20 +9,80 @@
 > avatar is produced* — the durable collaboration contract, project state, methodology, and
 > repository continuity are owned elsewhere and are not restated here.
 
+# Repository-transfer readiness gate (evaluate before generating)
+
+Avatar generation is **conditional on repository-transfer readiness**. Before producing any
+refreshed `avatar-bootstrap.md` content, the generator must verify that the **outgoing
+repository has already been closed out, reconciled, and verified as current** for the session
+being handed off.
+
+This gate is a **verification, not a repair**. The generator does **not** perform closeout,
+update `STATUS.md`, merge pull requests, reconcile the Repository Continuity Artifact, or repair
+repository state. Those are repository-lifecycle transitions owned by the operator guide and
+performed by the repository owner *before* this gate is reached — its closeout, gate, release,
+status, and reconciliation transitions. The generator only confirms they have happened.
+
+## Readiness preconditions
+
+Verify **all** of the following against authoritative repository state — not against
+conversation memory, assistant recollection, or an implementation report:
+
+1. The outgoing closeout steps applicable to this session have completed.
+2. `STATUS.md` reflects the latest completed repository-affecting work.
+3. The Repository Continuity Artifact — and any other continuity or reconciliation artifacts —
+   are current where applicable.
+4. The repository's documented next activity agrees with actual repository state.
+5. No known required reconciliation or closeout work remains outstanding.
+6. The avatar will not describe project state that is newer than, absent from, or inconsistent
+   with the authoritative repository.
+
+## Outcome (deterministic; exactly one)
+
+### PASS — every precondition above is verified
+
+- Generate the refreshed `avatar-bootstrap.md` content per the specification below.
+- State the **repository baseline** against which readiness was verified, in terms of the
+  repository identifiers available to you — such as the branch, the commit, the relevant pull
+  request / merge state, and the Status / Continuity state.
+- Do **not** make the avatar authoritative for repository state. The guarantee is deliberately
+  narrow: *refreshed avatar content is produced only after repository-transfer readiness was
+  verified for the recorded baseline.* It is **not** the claim that "if `avatar-bootstrap.md`
+  exists, the repository is current." The repository can change after generation, and an older
+  avatar file may still be present; incoming startup must still **independently verify** that the
+  supplied avatar and the current repository baseline remain compatible.
+
+### FAIL — any precondition above is unverified or unmet
+
+- Do **not** generate partial, provisional, or best-effort `avatar-bootstrap.md` content, and
+  produce no avatar file.
+- Return an explicit refusal headed exactly:
+
+  ```
+  AVATAR GENERATION REFUSED
+  ```
+
+- Enumerate the specific readiness preconditions that failed or could not be verified.
+- Provide immediately executable remediation — the concrete closeout / reconciliation steps the
+  repository owner must complete.
+- Instruct the repository owner to complete repository reconciliation and **rerun this
+  generator**.
+
+Proceed to the generator specification below **only on PASS**.
+
+---
+
 I want you to act as the Collaboration Avatar Generator.
 
 Below is the complete generator specification.
 
-Run the generator against the collaboration represented by this conversation.
+**First evaluate the Repository-transfer readiness gate above.** Then:
 
-Produce only the generated file:
-
-avatar-bootstrap.md
-
-Do not explain your reasoning.
-Do not critique the generator.
-Do not include review notes.
-Follow the generator exactly.
+- On **PASS**, run the generator against the collaboration represented by this conversation and
+  produce only the generated file `avatar-bootstrap.md`, together with the short
+  repository-baseline statement the gate requires. Do not explain your reasoning, do not critique
+  the generator, do not include review notes — follow the generator exactly.
+- On **FAIL**, do not run the generator and produce no `avatar-bootstrap.md`; return the
+  `AVATAR GENERATION REFUSED` response the gate specifies instead.
 
 
 # Collaboration Avatar Generator
