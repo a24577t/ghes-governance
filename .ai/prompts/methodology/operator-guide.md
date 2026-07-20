@@ -8,6 +8,8 @@ State names (*Phase Active*, *Phase Gate*, *Context Established*, *Work-Item Com
 
 Not every transition runs a prompt. Some are performed by human action or by re-running an existing prompt; those are marked **no prompt** and collected at the end.
 
+**Repository preparation vs. bootstrap.** The gate, release, status-reconciliation, and session-close transitions here (S3–S10) *prepare* repository state — they **produce** a repository that is authoritative and current, including before a context refresh for the next collaborator. [`session-bootstrap.md`](session-bootstrap.md) (S1) does the opposite: it **consumes and verifies** that already-prepared state, read-only, and never prepares it. The collaboration-avatar refresh is a **separate, non-repository step** owned by the outgoing collaboration ([`../../collaboration/collaboration-avatar-generator.md`](../../collaboration/collaboration-avatar-generator.md)), not by any transition here.
+
 ## Start here every session
 
 Begin at **S1**. After any prompt completes, or whenever you reach a decision point, return here, match your situation, and act. Bootstrap's output already reports the current objective and next milestone; this guide turns *"objective + situation"* into *"next prompt."*

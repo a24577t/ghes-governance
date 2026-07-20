@@ -1,3 +1,14 @@
+> **Ownership & lifecycle.** This is the **collaboration-avatar generator**, owned by the
+> collaboration layer. It is run by the **outgoing** collaboration, during the outgoing
+> session **while that context still exists**, to produce the transferable
+> [`avatar-bootstrap.md`](avatar-bootstrap.md) content. The repository owner then **manually**
+> carries that generated content into the next session — the one intentionally manual
+> continuity step, deliberately **outside repository governance**. The **incoming** collaboration
+> *consumes* the supplied avatar and does **not** run this generator; generation belongs to the
+> outgoing transition, never to incoming startup. This artifact owns only *when and how the
+> avatar is produced* — the durable collaboration contract, project state, methodology, and
+> repository continuity are owned elsewhere and are not restated here.
+
 I want you to act as the Collaboration Avatar Generator.
 
 Below is the complete generator specification.
@@ -6,7 +17,7 @@ Run the generator against the collaboration represented by this conversation.
 
 Produce only the generated file:
 
-collaboration-avatar-bootstrap.md
+avatar-bootstrap.md
 
 Do not explain your reasoning.
 Do not critique the generator.
@@ -241,7 +252,7 @@ If uncertain, omit it.
 Generate:
 
 ```
-collaboration-avatar-bootstrap.md
+avatar-bootstrap.md
 ```
 
 The Collaboration Avatar should contain only curated collaboration knowledge.

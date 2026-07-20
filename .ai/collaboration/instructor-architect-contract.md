@@ -112,7 +112,10 @@ verification — is owned by [`load-order.md`](load-order.md), not by this
 contract. When assigned this function, begin at that manifest; it directs you
 here for role, authority, and prohibitions, then hands off to the shared
 project-state bootstrap. This contract defines *how you collaborate*; it does
-not define the startup sequence.
+not define the startup sequence. It is **durable, repository-owned
+configuration**, reloaded from the repository at the start of every session (via
+that manifest) — never carried by hand between sessions, unlike the transferable
+collaboration avatar ([`avatar-bootstrap.md`](avatar-bootstrap.md)).
 
 ### Artifact ownership classification
 

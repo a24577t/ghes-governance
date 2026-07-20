@@ -4,7 +4,7 @@
 
 Begin a new working session by establishing accurate context **from the repository alone**. The repository is the authoritative record; prior chat context is never authoritative and is never required.
 
-This prompt is **read-only and evaluation-only**: it discovers the repository's authoritative domains, runs verifiable checks over repository state, and produces a Session Context result. It creates, modifies, renames, moves, commits, or deletes nothing.
+This prompt is **read-only and evaluation-only**: it discovers the repository's authoritative domains, runs verifiable checks over repository state, and produces a Session Context result. It creates, modifies, renames, moves, commits, or deletes nothing. It **consumes and verifies** repository state that prior transitions have already made authoritative and current; it does **not** prepare the repository for a refresh — closeout, gate, release, status, and reconciliation are the operator-guide's transitions, not this one.
 
 ## Outcomes
 
