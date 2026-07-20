@@ -134,71 +134,136 @@ If the answer is no, omit it.
 
 # Discover
 
-Determine, where applicable:
+Evaluate each category below **separately**, in this order. The categories are the
+avatar's output sections; keeping them distinct during discovery is what lets the
+generated avatar preserve both the collaboration's **philosophy** (why it exists and how
+it thinks) and its **operational discipline** (how it behaves and works) without
+collapsing one into the other.
 
-## Collaboration Function
+Each category lists **illustrative** examples. They are guidance for the quality bar,
+never mandatory text: discover the applicable content from the collaboration being
+analyzed, and omit any category that has no durable, qualifying content.
 
-Identify the enduring collaboration function independent of any specific AI engine.
+## Collaboration Function — *why the collaboration exists*
 
-Describe only the enduring collaboration function that should persist across AI engines.
+Identify the enduring function the collaboration performs, independent of any project or
+AI engine. Capture the transferable essence — not this project's specific role
+assignment, which is repository-owned durable contract content and must not be duplicated
+(see **Exclude**).
 
-Capture enduring collaboration functions, not temporary working roles.
+The function may include ideas such as:
 
----
+- improving the quality of thinking rather than merely accelerating implementation;
+- challenging assumptions;
+- exposing tradeoffs and risks;
+- preserving conceptual integrity;
+- teaching and supporting sound human judgment;
+- independently reviewing and quality-gating consequential work.
 
-## Collaboration Knowledge
-
-Identify durable collaboration knowledge that has emerged through experience.
-
-This may include:
-
-- principles;
-- heuristics;
-- recurring patterns;
-- collaboration guidance;
-- durable lessons learned.
-
-Prefer concise guidance that consistently improves future collaboration.
-
-Include only knowledge expected to remain valuable across future collaborations.
-
----
-
-## Mental Model Evolution
-
-Identify significant changes in how the collaboration understands or approaches problems.
-
-Record only changes that influence future collaboration.
-
-Do not document project history.
+Do not hard-code any specific project's function. Discover and curate the applicable
+enduring function from the collaboration in front of you.
 
 ---
 
-## Abandoned Directions
+## Core Collaboration Principles — *how the collaboration thinks*
 
-Identify approaches intentionally abandoned because a better collaboration pattern emerged.
+Identify the durable principles that govern how the collaboration reasons about problems.
+Principles are stable stances, not step-by-step behaviors.
 
-Capture:
+They may include ideas such as:
+
+- architecture before implementation;
+- distinguishing discovery, interpretation, and design;
+- separating responsibilities from specific participants or engines;
+- treating information architecture, ownership, authority, lifecycle, dependencies, and
+  consumers as first-class design concerns;
+- preferring evidence and conceptual clarity before structural change.
+
+---
+
+## Operational Heuristics — *how the collaboration behaves*
+
+Identify concise, actionable behaviors proven through practice. A heuristic is a rule the
+collaboration can act on directly; it is distinct from a principle (a stance) even when
+the two are related.
+
+They may include patterns such as:
+
+- reconcile instructions to authoritative reality;
+- execute authoritative artifacts rather than memory;
+- ask rather than infer essential missing information;
+- quarantine unexpected or unattributed state;
+- refute before certifying;
+- preserve independent review and change boundaries;
+- prefer explicit ownership over duplicated responsibility.
+
+Distinguish these actionable heuristics from the broader principles above, but merge
+closely related concepts rather than stating the same idea twice at two levels.
+
+---
+
+## Collaboration Practices — *how the collaboration works*
+
+Identify durable working practices that improve future collaboration and pass the
+Boundary Rules. Practices describe a repeatable way of working.
+
+They may include practices such as:
+
+- structured discovery before design;
+- one focused question at a time when human judgment is materially required;
+- summarizing the conceptual model before solution design;
+- separating durable collaboration knowledge from temporary working context;
+- refinement over accumulation.
+
+---
+
+## Current Collaboration Model — *the reusable model, not its history*
+
+Capture a concise current model of how collaboration knowledge operates, but only when
+that model is broadly reusable across projects.
+
+- Do **not** narrate a "mental model evolution" merely to record how the thinking changed.
+- Express the *result* as a principle, heuristic, practice, or concise model — whichever
+  category fits — rather than as a history.
+- Include historical evolution only when the change itself carries durable future guidance
+  (for example, a recurring trap and the reasoning that escapes it).
+
+---
+
+## Abandoned Directions — *only recurring, cross-project dead ends*
+
+Retain an abandoned direction only when **all** of the following hold:
+
+- the rejected approach is likely to recur;
+- the reason for abandoning it remains useful across projects;
+- the revisit criteria are meaningful.
+
+Do not preserve a historical dead end merely because it occurred. When retained, capture:
 
 - Decision
 - Reason
 - Revisit criteria
 
-Include only if the guidance remains valuable.
-
 ---
 
-## Deferred Questions
+## Deferred Questions — *only matured, durable collaboration questions*
 
-Identify unresolved collaboration questions worth revisiting.
+Include a deferred question only when it is itself durable collaboration knowledge and has
+**all** of:
 
-Capture:
+- a clear cross-project collaboration consequence;
+- a justified reason it cannot yet be resolved;
+- a concrete trigger for reconsideration.
+
+Exclude speculative research topics, vague future improvements, project backlog, and
+observations that have not yet matured into collaboration knowledge. It is valid — and
+common — for a generated avatar to contain **no** Deferred Questions section.
+
+Capture, when qualifying:
 
 - Question
 - Reason deferred
 - Trigger to revisit
-
-Do not include project backlog items.
 
 ---
 
@@ -206,22 +271,24 @@ Do not include project backlog items.
 
 Do NOT include:
 
+- Project state and project-specific knowledge
 - Project architecture
 - Repository structure
 - ADRs
 - STATUS
 - Repository Continuity
+- Methodology and lifecycle rules
 - Implementation details
-- Session summaries
-- Conversation transcripts
+- Duplicated durable contract content — the repository-owned collaboration contract is
+  reloaded from the repository every session and is never carried by the avatar
+- Session narrative, session summaries, and conversation transcripts
 - Temporary observations
 - Brainstorming
 - Historical discussion
-- Project-specific knowledge
 - Personal preferences
-- Engine-specific behavior
+- Engine-specific behavior or operation
 - Prompt wording
-- Duplicate concepts
+- Duplicate concepts, and the same concept restated at two levels
 
 ---
 
@@ -248,11 +315,28 @@ When generating the Collaboration Avatar, the generator shall:
 - identify candidate collaboration insights;
 - review all available `avatar-safe:` candidate insights;
 - validate every candidate against the Boundary Rules;
-- merge overlapping concepts into coherent guidance;
-- retire or reject superseded, redundant, or project-specific knowledge; and
-- publish a concise Collaboration Avatar representing the current  collaboration.
+- **evaluate collaboration function, core principles, operational heuristics, practices,
+  the current collaboration model, abandoned directions, and genuinely durable deferred
+  questions as separate categories** — so philosophy and operational discipline are each
+  assessed on their own merits and neither crowds out the other;
+- **merge overlapping material within and across those categories**, and **reject a
+  duplicate statement expressed at a different level** (for example, a principle and a
+  heuristic, or an abandoned direction that merely restates a heuristic — keep the single
+  statement at the level that fits best);
+- retire or reject superseded, redundant, or project-specific knowledge;
+- **remove any category that has no qualifying durable content** rather than padding it; and
+- publish a concise Collaboration Avatar representing the current collaboration.
 
-The generator shall refine collaboration knowledge rather than accumulate it.
+The generator shall refine collaboration knowledge rather than accumulate it, and shall:
+
+- avoid turning the avatar into a policy manual;
+- avoid losing enduring philosophy while optimizing for actionability — preserve *why the
+  collaboration exists*, not only *how it behaves*;
+- avoid preserving temporary process details merely because they were recently discussed;
+- prefer concise rules and models over narrative;
+- produce an avatar that can be understood without the source conversation; and
+- ensure every published statement would improve collaboration across different projects
+  and AI engines.
 
 The published Collaboration Avatar must represent the current state of the collaboration, not the history of how it evolved.
 
@@ -293,17 +377,60 @@ The generator must review all available avatar-safe: candidate insights before p
 
 # Validation
 
-Before finalizing the Collaboration Avatar, verify:
+Before finalizing the Collaboration Avatar, answer the primary question:
+
+> **Does the avatar preserve both the enduring purpose of the collaboration and the
+> operational discipline learned through practice?**
+
+If it preserves only one, it is not finished.
+
+Then verify:
 
 - The document represents collaboration rather than project knowledge.
 - The document represents current understanding rather than historical accumulation.
+- **Principles explain how the collaboration *thinks*; heuristics explain how it
+  *behaves*; practices explain how it *works*** — and these categories are not redundant
+  with one another.
 - Superseded concepts have been removed or merged.
-- Similar concepts have been consolidated.
-- The document remains concise enough to be practical as a bootstrap.
-- Every published insight passes the Boundary Rules.
+- Similar concepts have been consolidated, including any concept stated at two levels.
+- Every published insight passes the Boundary Rules and would hold across projects and AI
+  engines.
 - The document can be understood without reference to a specific conversation.
+- The document remains concise enough to load at the beginning of **every** collaboration
+  session.
 
 If uncertain, omit it.
+
+---
+
+# Output structure
+
+The generated avatar follows this preferred structure. It opens with a concise boundary
+and authority statement, then uses only the sections that have qualifying durable content:
+
+```markdown
+# Collaboration Avatar
+
+[Concise boundary and authority statement]
+
+## Collaboration Function
+
+## Core Collaboration Principles
+
+## Operational Heuristics
+
+## Collaboration Practices
+
+## Current Collaboration Model
+
+## Abandoned Directions
+
+## Deferred Questions
+```
+
+Not every output uses every section. **Omit any section with no qualifying durable
+content** — an avatar with no abandoned directions and no deferred questions is normal, and
+preferred over one padded to fill the template.
 
 ---
 
