@@ -9,6 +9,12 @@ This manifest owns **only**: the collaboration entry, the required load order, t
 
 It **does not** define — and never restates — methodology or lifecycle rules, architecture or decisions, project state or versions, the implementation workflow, or the role authority and prohibitions themselves. Each of those has its own owner; this manifest only **points** to them. Where this manifest and an owning artifact differ, the owning artifact prevails.
 
+## Session-refresh model (what precedes this manifest)
+
+A new session begins with the **refreshed collaboration avatar already supplied**: the repository owner manually carries the [`avatar-bootstrap.md`](avatar-bootstrap.md) content — produced by the outgoing collaboration through [`collaboration-avatar-generator.md`](collaboration-avatar-generator.md) — into the incoming context. That transfer is the **one intentionally manual step**, deliberately outside repository governance; this manifest neither loads nor regenerates the avatar. Everything else the incoming collaborator needs is **repository-governed** and loaded from here: the durable [`instructor-architect-contract.md`](instructor-architect-contract.md), and — through the hand-off below — all authoritative project state (verified read-only by session-bootstrap). The repository-side preparation that makes that state authoritative and current before a refresh is owned by the operator-guide's closeout, gate, release, status, and reconciliation transitions, not by startup.
+
+> **Invariant.** The repository preserves all authoritative project state and durable collaboration configuration required by future sessions. The repository owner manually transfers only the refreshed collaboration avatar, because that context intentionally exists outside repository governance.
+
 ## Start here (required, in order)
 
 1. **This manifest** — you are at the collaboration entry point.
@@ -35,7 +41,7 @@ Do not load an artifact merely because it is useful. Load the required chain eve
 - *Reviewing implementation* — the applicable standards ([`../../docs/standards/engineering-standards.md`](../../docs/standards/engineering-standards.md)) and the active specification.
 
 **On demand — reference only when relevant:**
-- Cross-project, engine-neutral collaboration heuristics — [`avatar-bootstrap.md`](avatar-bootstrap.md).
+- Cross-project, engine-neutral collaboration heuristics — [`avatar-bootstrap.md`](avatar-bootstrap.md) (manually supplied to the incoming context, not loaded by this manifest; see the *Session-refresh model* above). Regenerating it belongs to the **outgoing** collaboration via [`collaboration-avatar-generator.md`](collaboration-avatar-generator.md), never to incoming startup.
 - Historical / evolution records (discovery briefs, session summaries) — explanatory only, never authoritative.
 
 ## Transition into shared startup

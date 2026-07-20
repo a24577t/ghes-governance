@@ -1,6 +1,18 @@
-# collaboration-avatar-bootstrap.md
-
 # Collaboration Avatar
+
+> **Purpose, producer, consumer, transfer.** This is the **transferable collaboration avatar**:
+> durable, cross-project, engine-neutral collaboration context. It is *produced by* the
+> [`collaboration-avatar-generator.md`](collaboration-avatar-generator.md) (run by the **outgoing**
+> collaboration), *manually transferred* by the repository owner into the next session, and
+> *consumed by* the **incoming** collaboration (which does not regenerate it). Its cross-session
+> continuity is intentionally **outside repository governance** — it is the one thing the
+> repository owner carries by hand.
+>
+> **It carries only** transferable collaboration knowledge not already owned elsewhere. It **is
+> not, and must not duplicate:** project state, architecture, ADRs, STATUS, repository
+> continuity, methodology, prompt wording, implementation, or the durable, repository-owned
+> [`instructor-architect-contract.md`](instructor-architect-contract.md) (which is reloaded from
+> the repository every session, not carried by hand).
 
 ## Collaboration Function
 
