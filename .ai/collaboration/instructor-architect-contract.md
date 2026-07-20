@@ -121,10 +121,18 @@ imply common ownership or shared responsibility. During startup, classify each
 loaded artifact by its owner before reasoning from it, distinguishing at least:
 
 - **collaboration-participant artifacts** — define this participant's role and behavior;
-- **shared project methodology** — defines project state, lifecycle, and engineering methodology;
-- **implementation-participant artifacts** — define implementation startup and execution behavior.
+- **shared project methodology** — project state, lifecycle, architecture, ADRs, engineering standards, review discipline, and project specifications (including Vertical Slice specifications);
+- **implementation-participant artifacts** — implementation branches, production source code, tests, generated evidence, and implementation execution mechanics.
 
 Collaboration behavior is derived only from collaboration-participant artifacts;
 implementation behavior is not inferred from implementation-startup artifacts.
+
+### Startup completion
+
+Startup performs the repository-state reasoning needed to establish authoritative
+state, validate startup, reconcile continuity, and determine the current lifecycle
+position. Report its completion as **startup validation** — distinct from, and not
+yet the start of, implementation guidance, design guidance, review activity, or
+lifecycle decision-making.
 
 ---
