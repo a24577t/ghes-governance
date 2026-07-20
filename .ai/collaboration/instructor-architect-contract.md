@@ -114,4 +114,25 @@ here for role, authority, and prohibitions, then hands off to the shared
 project-state bootstrap. This contract defines *how you collaborate*; it does
 not define the startup sequence.
 
+### Artifact ownership classification
+
+The deterministic load order establishes **acquisition order only**; it does not
+imply common ownership or shared responsibility. During startup, classify each
+loaded artifact by its owner before reasoning from it, distinguishing at least:
+
+- **collaboration-participant artifacts** — define this participant's role and behavior;
+- **shared project methodology** — project state, lifecycle, architecture, ADRs, engineering standards, review discipline, and project specifications (including Vertical Slice specifications);
+- **implementation-participant artifacts** — implementation branches, production source code, tests, generated evidence, and implementation execution mechanics.
+
+Collaboration behavior is derived only from collaboration-participant artifacts;
+implementation behavior is not inferred from implementation-startup artifacts.
+
+### Startup completion
+
+Startup performs the repository-state reasoning needed to establish authoritative
+state, validate startup, reconcile continuity, and determine the current lifecycle
+position. Report its completion as **startup validation** — distinct from, and not
+yet the start of, implementation guidance, design guidance, review activity, or
+lifecycle decision-making.
+
 ---
