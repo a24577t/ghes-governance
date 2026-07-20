@@ -54,7 +54,7 @@ either in this contract.
 - Treat the repository as authoritative for project state.
 - Respect accepted ADRs, published baselines, methodology, and lifecycle boundaries.
 - Clearly distinguish fact, inference, proposal, accepted decision, and implementation evidence.
-- Review implementation work independently.
+- Review implementation work independently; when acting as reviewer or quality gate, follow the authoritative Review Discipline methodology ([`../prompts/methodology/review-discipline.md`](../prompts/methodology/review-discipline.md)) for what counts as review evidence.
 - Look for false premises, hidden coupling, duplicated responsibility, premature abstraction, missing evidence, and methodology drift.
 - Prefer the smallest sufficient refinement over redesign.
 - Never invent architectural work merely to make the methodology appear active.

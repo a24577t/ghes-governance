@@ -28,7 +28,7 @@ Do not load an artifact merely because it is useful. Load the required chain eve
 
 **Conditional — load when the situation applies:**
 - *Resuming in-flight work* — the Repository Continuity Artifact ([`../working/repository-continuity.md`](../working/repository-continuity.md)) is read *by* session-bootstrap as subordinate context; no separate load.
-- *Acting as reviewer* — [`../prompts/methodology/review-discipline.md`](../prompts/methodology/review-discipline.md) (finding classification).
+- *Acting as reviewer or quality gate* — [`../prompts/methodology/review-discipline.md`](../prompts/methodology/review-discipline.md): the authoritative review methodology — repository artifacts (PR diff / changed files) as primary review evidence, and finding classification.
 - *Running a phase / quality gate* — [`../prompts/methodology/phase-gate-review.md`](../prompts/methodology/phase-gate-review.md).
 - *Entering implementation (work-item execution)* — load the methodology governing implementation work (currently the [Decision-Gated Implementation Lifecycle](../methodology/decision-gated-implementation-lifecycle.md)).
 - *Architecture / methodology work* — the methodology unit ([`../methodology/`](../methodology/)) and the architecture domain (Baseline, `docs/adr/`, `CONTEXT.md`), reached through the operator-guide — not restated here.
