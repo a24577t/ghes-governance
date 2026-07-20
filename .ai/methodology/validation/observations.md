@@ -162,3 +162,16 @@ Origin batch: **T0–T5 implementation of Vertical Slice 1 — Observe-Mode Trac
 - **Observation:** The startup chain targets cold-start collaborator onboarding; a continuing implementation session's load-bearing inputs were a subset of it.
 - **Impact:** Recorded with the stated caveat; limited direct evidence.
 - **Related artifacts:** `.ai/collaboration/load-order.md`; `.ai/collaboration/instructor-architect-contract.md`; `.ai/prompts/methodology/operator-guide.md`; `.ai/prompts/methodology/session-bootstrap.md`.
+
+---
+
+## Observations recorded after the initial batch
+
+### MO-017 — A quality gate could not be completed from an implementation summary without the repository artifacts
+- **Area:** Review Discipline
+- **Kind:** Friction
+- **Origin:** Methodology Validation subsystem review (PR #37), 2026-07-20
+- **Evidence:** During the independent architectural review of the Methodology Validation subsystem, the review request was accompanied by an implementation report that summarized the work performed and the verification run, but did not include the repository artifacts under review — the pull-request diff or the list of changed files. The independent reviewer could not legitimately perform the quality gate, because the summary is not the artifact being gated. The review therefore remained **Review Pending** until the implementation artifacts (PR #37's diff and changed files) could be inspected directly. The pending outcome was consistent with the project's review discipline, which is evidence-first and evaluates authoritative repository artifacts rather than implementation summaries.
+- **Observation:** A quality gate conducted from an implementation summary alone, without the accompanying repository artifacts (PR diff / changed files), could not be legitimately completed; the review held at Review Pending until the artifacts themselves were inspected.
+- **Impact:** The quality gate did not complete on the summary; the review outcome was Review Pending pending inspection of the actual repository artifacts.
+- **Related artifacts:** PR #37; `.ai/prompts/methodology/review-discipline.md`; the `code-review` skill (Verify-diff over the actual repository diff); `.ai/methodology/decision-gated-implementation-lifecycle.md` (Verify-diff / Architecture Conformance Review).
