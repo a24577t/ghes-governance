@@ -15,6 +15,16 @@ Bootstrapping has exactly **two** outcomes — no third state:
 
 A single failed check is a Bootstrap Failed. Bootstrap never repairs anything; it routes failures to Remediation.
 
+## Artifact Source Selection
+
+Establishing context requires the authoritative artifacts themselves, not a description of them. Because a consumer may lack direct repository access, the **source** of each artifact is fixed deterministically. This **applies** MADR-0001 (the repository is authoritative; every aid is subordinate and verified) — it does not reopen it.
+
+1. **Load each required authoritative artifact from the repository at the revision governing the current work.**
+2. **If repository access is unavailable, an explicitly provided copy may be used only when it is presented as a copy of a repository artifact.** Treat it as temporary transport of the authoritative artifact, never as an independent source of truth — subordinate to the repository (MADR-0001 D3).
+3. **Never substitute** a conversational summary, assistant memory, an implementation report, or inferred content for the artifact.
+4. **When repository access is restored, verify the provided copy against the repository version.** The repository prevails on any divergence, and the discrepancy is surfaced, never silently resolved (MADR-0001 D3).
+5. **If neither the repository artifact nor an explicitly provided copy is available, report the artifact unavailable and leave guidance dependent on that artifact inactive** — never infer its contents.
+
 ## Establishing Context
 
 Do **not** assume a fixed artifact list. Discover the repository's authoritative domains and establish the authority set from them. Required steps:
