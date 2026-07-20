@@ -1,7 +1,7 @@
 # Repository Continuity Artifact
 
-**Updated:** 2026-07-19 (post-T4 reconciliation; T4 / PR #29 merged, no implementation work in flight).
-**Base:** `main` with Vertical Slice 1 **T0–T4 merged** (PRs #16, #19, #23, #24, #29) on the ADR-0015-accepted baseline (PR #27), the methodology + standards refresh adopted (PR #17), and deterministic collaboration startup plus the Decision-Gated Implementation Lifecycle merged (PRs #30–#32, #26). `main`: **19 tests green**.
+**Updated:** 2026-07-20 (post-T5 reconciliation; T5 / PR #35 merged, no implementation work in flight).
+**Base:** `main` with Vertical Slice 1 **T0–T5 merged** (PRs #16, #19, #23, #24, #29, #35) on the ADR-0015-accepted baseline (PR #27), the methodology + standards refresh adopted (PR #17), the post-T4 status reconciliation (PR #34), and deterministic collaboration startup plus the Decision-Gated Implementation Lifecycle merged (PRs #30–#32, #26). `main`: **34 tests green**.
 
 A temporary, single-use bridge (MADR-0001; `create-repository-continuity.md`). It carries only uncommitted, in-flight intent and **pointers** to authoritative artifacts — never a second copy of committed history. Subordinate to authoritative repository state (the repository always prevails); retired or re-pointed as slices complete. It is **not required** for a clean, fully-committed, stable state; this instance records the current resume point only.
 
@@ -16,20 +16,20 @@ A temporary, single-use bridge (MADR-0001; `create-repository-continuity.md`). I
 
 ## In flight
 
-- **This reconciliation** — a docs-only change aligning STATUS's Current Objective and this artifact to the post-T4 committed state, plus a non-blocking `Proposed → Adopted` label fix in `python-coding-standard.md`. **No implementation work is in flight.**
+- **This reconciliation** — a docs-only change recording T5 (PR #35) as delivered and re-pointing STATUS's Current Objective and this artifact to the post-T5 committed state. **No implementation work is in flight.**
 
 ## Delivered — pointer only (not restated here)
 
-T0–T4 are committed authoritative history: see `.ai/architecture/STATUS.md` and PRs #16, #19, #23, #24, #29. This artifact does not summarize completed work.
+T0–T5 are committed authoritative history: see `.ai/architecture/STATUS.md` and PRs #16, #19, #23, #24, #29, #35. This artifact does not summarize completed work.
 
-## Recommended Next Activity — T5 (not started)
+## Recommended Next Activity — T6 (not started)
 
-Next implementation work item: **T5 — full desired-state bundle loading & schema validation at pinned versions** (Slice 1 of 7). T4 added only two contextual fail-loud guards (duplicate policy `(id, version)`; a binding referencing an absent policy version); comprehensive bundle validation is T5.
+Next implementation work item: **T6 — validate execution-creation preconditions and the refusal lifecycle** (Slice 1 of 7). T5 fixed the outcome for an invalid bundle (a `Failed` Execution that still writes evidence); T6 establishes the distinct **pre-execution refusal** outcomes — a request refused before any Execution exists, producing no Execution Status and no authoritative evidence — for single-execution rights unavailable (AC 13 / S13) and Execution Identifier reuse (AC 15 / S15).
 
-- **Predecessor:** T4 merged (PR #29) — satisfied.
+- **Predecessor:** T5 merged (PR #35) — satisfied.
 - **Seams:** the two public seams only — `run_execution`, `derive_reports`. No new public seam.
 - **Method:** TDD red-before-green (§12), in force from T1 onward.
-- **Deferred — do not pull forward:** T6, T7; predicate operators / aggregation precedence; `StrEnum` migration; tooling installation.
+- **Deferred — do not pull forward:** T7; predicate operators / aggregation precedence; `StrEnum` migration; tooling installation.
 
 ## Work Not Yet Committed / Must Remain Separate
 
