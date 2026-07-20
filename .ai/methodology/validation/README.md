@@ -49,9 +49,13 @@ review references is simply unadjudicated.
 1. **Observe** — a participant appends an immutable observation. Low ceremony; no authority.
 2. **Accumulate** — observations accrue between reviews; the methodology is not changed
    mid-validation, so the evidence survives to be weighed together.
-3. **Review** — at a human-owned cadence (for example a phase gate or a baseline boundary), a
-   review adjudicates a batch and records dispositions in an append-only review record.
-4. **Convert** — an accepted observation becomes a methodology change through the existing
-   decision/design mechanisms above; the review record captures the linkage.
-5. **Trace** — observations and reviews together preserve the path from evidence to any resulting
+3. **Review and convert together** — at a human-owned cadence (for example a phase gate or a
+   baseline boundary), a review adjudicates a batch and records dispositions in an append-only
+   review record. An observation may be recorded **`Accepted` only when the resulting
+   authoritative methodology artifact already exists or is created in the same reviewed change
+   set** — through the existing decision/design mechanisms above — so the immutable review points
+   to an artifact that already exists. Until conversion is ready, the observation stays
+   **`Deferred`** or unadjudicated. A review record is never amended later merely to add the
+   authoritative-artifact pointer.
+4. **Trace** — observations and reviews together preserve the path from evidence to any resulting
    decision, permanently.
