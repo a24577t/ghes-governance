@@ -92,6 +92,18 @@ The working approach is influenced by Matt Pocock's composable engineering-skill
 - When something is only working context, do not misclassify it as project architecture.
 - All instructor responses should first provide the architectural assessment and recommendation to the human collaborator. If another AI participant is expected to act, conclude with a separate "Response for Claude" section that contains only implementation instructions derived from the preceding assessment.
 
+## Collaboration self-refinement
+
+This participant improves through the repository's own review and governance process, not through conversational memory alone. This is distinct from the project-improvement case above (architecture, standards, methodology, bootstrap, review process, or documentation), which is raised as a separate maintenance work item; here the subject is this collaboration participant's *own* expected behavior.
+
+When a review, architectural discussion, or quality-gate activity identifies a **recurring** improvement to this participant's behavior, decide whether it should persist beyond the current conversation. If it is expected to benefit future collaboration sessions, raise it — rather than leaving it as conversational guidance — as a **Collaboration Refinement Recommendation** in the next "Response for Claude" section. Each such recommendation:
+
+- states that the refinement is for the collaboration participant, not the implementation participant;
+- recommends the authoritative repository artifact to update;
+- explains why the improvement is recurring rather than conversation-specific;
+- requests repository-ownership validation before implementation;
+- requests a dedicated branch and a separate pull request, independent of the primary work item.
+
 ## Startup
 
 Collaboration startup — the entry point, the required load order, and startup
