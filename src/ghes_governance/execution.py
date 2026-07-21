@@ -24,6 +24,7 @@ from .enums import (
     ExecutionStatus,
     PolicyOutcome,
     RefusalCategory,
+    Severity,
     UnknownClassification,
 )
 from .errors import BundleError, ExecutionRefusedError
@@ -44,7 +45,7 @@ from .model import (
     manifest_header,
     policy_results_payload,
 )
-from .oplog import record_refusal
+from .oplog import record_execution_event, record_refusal
 from .store import execution_exists, write_execution
 from .validation import validate_bundle
 
@@ -258,9 +259,10 @@ def _write_failed_execution(
     )
 
 
-def _refusal_log_target(log_root: str | Path | None, store_root: str | Path) -> Path:
-    """Where a pre-execution refusal event is written: the given operational-log location, or a
-    default Operational Log directory beside the store when none is supplied (a local default)."""
+def _operational_log_target(log_root: str | Path | None, store_root: str | Path) -> Path:
+    """Where operational events (pre-execution refusals and execution-time stage/detail events) are
+    written: the given operational-log location, or a default Operational Log directory beside the
+    store when none is supplied (a local default). Always outside the evidence store."""
     return Path(log_root) if log_root is not None else Path(store_root).parent / "operational-log"
 
 
@@ -305,7 +307,7 @@ def _refuse_identifier_reuse(
         "store; the request is refused before Execution creation (ADR-0009 immutability)."
     )
     record_refusal(
-        _refusal_log_target(log_root, store_root),
+        _operational_log_target(log_root, store_root),
         category=RefusalCategory.IDENTIFIER_REUSE,
         attempted_execution_id=execution_id,
         requested_scope=evaluation_scope,
@@ -327,6 +329,7 @@ def run_execution(
     execution_id: str,
     store_root: str | Path,
     log_root: str | Path | None = None,
+    log_level: Severity = Severity.INFO,
     control_root: str | Path | None = None,
     engine_version: str = ENGINE_VERSION,
 ) -> ExecutionResult:
@@ -355,9 +358,17 @@ def run_execution(
     recording one structured ``ERROR`` event in the Operational Log: a reused Execution Identifier
     already present in the store (AC 15), and unavailable exclusive execution rights (AC 13). A
     refusal is distinct from a Failed Execution, which is created and then aborts. Optional
-    ``log_root`` names the Operational Log directory for those refusal events; optional
-    ``control_root`` names the mechanism-neutral execution-control directory used to hold exclusive
-    execution rights. Both default beside the store when not supplied.
+    ``log_root`` names the Operational Log directory for both those refusal events and the
+    execution-time stage/detail events; optional ``control_root`` names the mechanism-neutral
+    execution-control directory used to hold exclusive execution rights. Both default beside the
+    store when not supplied.
+
+    ``log_level`` (default ``Severity.INFO``) is runtime configuration of the Operational Log data
+    class, not an Execution-boundary input: it selects which execution-time operational events are
+    written (INFO major stages; DEBUG adds per-pair detail) and is **not** part of the Replay Input
+    Set. Evidence is byte-identical at every level (ADR-0009). This keyword is a backward-compatible
+    extension of the seam signature — existing callers are unaffected — and the governance execution
+    contract (evidence-determining inputs and outputs) is unchanged.
     """
     # Execution-creation precondition (AC 15): a reused Execution Identifier is refused before
     # any Execution exists — no Execution, no Status, no Evidence; the existing execution is left
@@ -394,6 +405,8 @@ def run_execution(
             evaluation_timestamp=evaluation_timestamp,
             execution_id=execution_id,
             store_root=store_root,
+            log_target=_operational_log_target(log_root, store_root),
+            log_level=log_level,
             engine_version=engine_version,
         )
     finally:
@@ -434,7 +447,7 @@ def _acquire_rights_or_refuse(
         # performs no attribution — so no conflicting identifier is recorded (existing_execution_id
         # stays None) rather than inferring or inventing an owner (Contract A).
         record_refusal(
-            _refusal_log_target(log_root, store_root),
+            _operational_log_target(log_root, store_root),
             category=RefusalCategory.RIGHTS_UNAVAILABLE,
             attempted_execution_id=execution_id,
             requested_scope=evaluation_scope,
@@ -455,13 +468,35 @@ def _execute_governed(
     evaluation_timestamp: str,
     execution_id: str,
     store_root: str | Path,
+    log_target: str | Path,
+    log_level: Severity,
     engine_version: str,
 ) -> ExecutionResult:
     """Run the Execution body once exclusive rights are held: validate the bundle (Failed path,
     T5), then discover, evaluate, and write Evidence. Extracted so ``run_execution`` guarantees
-    release of execution rights around every terminating path (success, Failed, or error)."""
+    release of execution rights around every terminating path (success, Failed, or error).
+
+    Emits execution-time operational events to the Operational Log at ``log_target``, filtered by
+    ``log_level`` (major stages at INFO; per-pair detail at DEBUG). Logging is a separate data
+    class: it never touches Evidence, so the Evidence written here is byte-identical at every
+    level (ADR-0009)."""
+
+    def _log(severity: Severity, event: str, detail: dict[str, Any] | None = None) -> None:
+        record_execution_event(
+            log_target,
+            severity=severity,
+            threshold=log_level,
+            event=event,
+            execution_id=execution_id,
+            timestamp=evaluation_timestamp,
+            engine_version=engine_version,
+            detail=detail,
+        )
+
+    _log(Severity.INFO, "execution.started")
     validation_errors = validate_bundle(bundle_path)
     if validation_errors:
+        _log(Severity.INFO, "execution.failed", {"validation_errors": len(validation_errors)})
         return _write_failed_execution(
             store_root=store_root,
             execution_id=execution_id,
@@ -476,6 +511,7 @@ def _execute_governed(
 
     repositories = estate["repositories"]
     inventory = inventory_payload([_inventory_record(repo) for repo in repositories])
+    _log(Severity.INFO, "discovery.completed", {"discovered": len(repositories)})
 
     pairs: list[dict[str, Any]] = []
     findings: list[dict[str, Any]] = []
@@ -488,6 +524,11 @@ def _execute_governed(
 
     for policy_id, versions in policies_by_id.items():
         for repo in repositories:
+            _log(
+                Severity.DEBUG,
+                "pair.processed",
+                {"policy_id": policy_id, "repository_id": repo["id"]},
+            )
             selection = select_authoritative_binding(
                 bundle["bindings"], policy_id, repo, evaluation_timestamp
             )
@@ -584,6 +625,7 @@ def _execute_governed(
         evaluated=evaluated,
         unknown=unknown,
     )
+    _log(Severity.INFO, "evaluation.completed", {"evaluated": evaluated, "unknown": unknown})
 
     provenance = binding_provenance_payload(pairs)
     finding_evidence = findings_payload(findings)
@@ -602,6 +644,7 @@ def _execute_governed(
     ]
     header = manifest_header(execution_id, evaluation_scope, evaluation_timestamp, engine_version)
     exec_dir = write_execution(store_root, execution_id, header, items)
+    _log(Severity.INFO, "evidence.written", {"items": len(items)})
 
     return ExecutionResult(
         execution_id=execution_id,
