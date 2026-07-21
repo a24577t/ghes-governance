@@ -62,4 +62,8 @@ def test_half_open_effective_period_boundary_contract(
         if p["repository_id"] in {"octo-org/at-end", "octo-org/future"}
     )
     assert report["execution_status"] == "Complete"
-    assert report["accounting"] == {"discovered": 3, "evaluated": 1, "unknown": 0}
+    assert {k: report["accounting"][k] for k in ("discovered", "evaluated", "unknown")} == {
+        "discovered": 3,
+        "evaluated": 1,
+        "unknown": 0,
+    }

@@ -36,7 +36,11 @@ def test_ungoverned_execution_completes_with_verified_evidence(
 
     # Observation of the declared scope completed: Complete, nothing evaluated.
     assert report["execution_status"] == "Complete"
-    assert report["accounting"] == {"discovered": 2, "evaluated": 0, "unknown": 0}
+    assert {k: report["accounting"][k] for k in ("discovered", "evaluated", "unknown")} == {
+        "discovered": 2,
+        "evaluated": 0,
+        "unknown": 0,
+    }
 
     # Every discovered repository is surfaced, and every (policy, repository) pair
     # records zero authoritative bindings and is ungoverned.

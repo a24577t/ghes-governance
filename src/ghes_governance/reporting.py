@@ -36,6 +36,39 @@ def _item_payload(items: dict[str, dict[str, Any]], kind: str, key: str) -> list
     return value if isinstance(value, list) else []
 
 
+# Claim-type → the evidence kinds that materially support a claim of that type. Citations are
+# item-scoped (manifest name + content hash) and centralized here so the claim-to-evidence mapping
+# lives in one place. Support is not assumed 1:1 where a claim aggregates several items, and it is
+# present-aware: a kind absent from a given Execution's manifest (e.g. a Failed Execution omits the
+# discovery and evaluation items) is dropped, so a citation never names an item the manifest lacks.
+_FINDING_SUPPORT = ("governance_findings", "binding_provenance")
+_UNGOVERNED_SUPPORT = ("binding_provenance", "inventory")
+_BUNDLE_VALIDATION_SUPPORT = ("bundle_validation",)
+_ACCOUNTING_SUPPORT = ("execution_status", "inventory", "policy_results")
+
+
+def _outcome_support(result: dict[str, Any]) -> tuple[str, ...]:
+    """Supporting kinds for one pair's Policy Outcome / Coverage State claim.
+
+    A governed evaluation aggregates the per-requirement findings, so it cites ``findings``
+    alongside the ``policy_results`` aggregate (ADR-0006/0007). A terminal authority Unknown
+    (recorded with an Unknown Classification) evaluates no requirement — authority selection
+    produced it — so it cites ``binding_provenance`` instead (ADR-0013/0015).
+    """
+    if "unknown_classification" in result:
+        return ("policy_results", "binding_provenance")
+    return ("policy_results", "findings")
+
+
+def _citations(kinds: tuple[str, ...], by_kind: dict[str, dict[str, Any]]) -> list[dict[str, str]]:
+    """Item-scoped citations for the given kinds that are present in the verified manifest."""
+    return [
+        {"kind": entry["kind"], "item": entry["name"], "sha256": entry["sha256"]}
+        for kind in kinds
+        if (entry := by_kind.get(kind)) is not None
+    ]
+
+
 def derive_reports(
     *,
     store_root: str | Path,
@@ -55,6 +88,7 @@ def derive_reports(
     mismatch, and ``EvidenceUnreadableError`` if the manifest or digest is unreadable.
     """
     manifest, items = read_verified_execution(store_root, execution_id)
+    by_kind = {entry["kind"]: entry for entry in manifest["items"]}
 
     # A Failed Execution (T5 bundle validation) discovers and evaluates nothing, so its
     # evidence carries only the status and the bundle-validation configuration evidence; the
@@ -76,6 +110,7 @@ def derive_reports(
                 if "unknown_classification" in r
                 else {}
             ),
+            "citations": _citations(_outcome_support(r), by_kind),
         }
         for r in results
     ]
@@ -84,6 +119,7 @@ def derive_reports(
             "policy_id": r["policy_id"],
             "repository_id": r["repository_id"],
             "coverage_state": r["coverage_state"],
+            "citations": _citations(_outcome_support(r), by_kind),
         }
         for r in results
     ]
@@ -94,12 +130,17 @@ def derive_reports(
         "evaluation_timestamp": manifest["evaluation_timestamp"],
         "engine_version": manifest["engine_version"],
         "execution_status": status["status"],
-        "accounting": status["accounting"],
+        "accounting": {**status["accounting"], "citations": _citations(_ACCOUNTING_SUPPORT, by_kind)},
         "compliance": {"outcomes": compliance_outcomes},
         "coverage": {"states": coverage_states},
-        "findings": findings,
-        "bundle_validation": validation_errors,
-        "ungoverned_pairs": ungoverned,
+        "findings": [{**f, "citations": _citations(_FINDING_SUPPORT, by_kind)} for f in findings],
+        "bundle_validation": [
+            {**e, "citations": _citations(_BUNDLE_VALIDATION_SUPPORT, by_kind)}
+            for e in validation_errors
+        ],
+        "ungoverned_pairs": [
+            {**pair, "citations": _citations(_UNGOVERNED_SUPPORT, by_kind)} for pair in ungoverned
+        ],
         "citations": {
             "execution_digest": content_hash(manifest),
             "manifest_items": manifest["items"],
@@ -117,6 +158,11 @@ def derive_reports(
     return ReportBundle(json_report=json_report, markdown=markdown)
 
 
+def _cite_str(citations: list[dict[str, str]]) -> str:
+    """Render a claim's item-scoped citations as a compact list of manifest item names."""
+    return ", ".join(f"`{c['item']}`" for c in citations)
+
+
 def _render_markdown(report: dict[str, Any]) -> str:
     accounting = report["accounting"]
     lines = [
@@ -126,7 +172,8 @@ def _render_markdown(report: dict[str, Any]) -> str:
         f"- Engine version: {report['engine_version']}",
         f"- Execution status: {report['execution_status']}",
         f"- Discovered: {accounting['discovered']} · "
-        f"Evaluated: {accounting['evaluated']} · Unknown: {accounting['unknown']}",
+        f"Evaluated: {accounting['evaluated']} · Unknown: {accounting['unknown']} · "
+        f"cites {_cite_str(accounting['citations'])}",
         "",
         "## Compliance and Coverage",
         "",
@@ -143,7 +190,8 @@ def _render_markdown(report: dict[str, Any]) -> str:
             coverage = coverage_by_pair.get((o["policy_id"], o["repository_id"]), "—")
             lines.append(
                 f"- policy `{o['policy_id']}` × repository `{o['repository_id']}`: "
-                f"Compliance {o['policy_outcome']} · Coverage {coverage}"
+                f"Compliance {o['policy_outcome']} · Coverage {coverage} · "
+                f"cites {_cite_str(o['citations'])}"
             )
     else:
         lines.append("No governed pair produced a Policy Outcome or Coverage State.")
@@ -157,11 +205,17 @@ def _render_markdown(report: dict[str, Any]) -> str:
             "",
         ]
         for err in report["bundle_validation"]:
-            lines.append(f"- `{err['artifact']}` — {err['code']}: {err['detail']}")
+            lines.append(
+                f"- `{err['artifact']}` — {err['code']}: {err['detail']} · "
+                f"cites {_cite_str(err['citations'])}"
+            )
 
     lines += ["", f"## Ungoverned pairs ({len(report['ungoverned_pairs'])})", ""]
     for pair in report["ungoverned_pairs"]:
-        lines.append(f"- policy `{pair['policy_id']}` × repository `{pair['repository_id']}`")
+        lines.append(
+            f"- policy `{pair['policy_id']}` × repository `{pair['repository_id']}` · "
+            f"cites {_cite_str(pair['citations'])}"
+        )
 
     lines += ["", "## Evidence citations", ""]
     lines.append(f"- Execution digest: `{report['citations']['execution_digest']}`")
