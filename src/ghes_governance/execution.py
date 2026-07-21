@@ -267,10 +267,14 @@ def _refusal_log_target(log_root: str | Path | None, store_root: str | Path) -> 
 def _correlation_id(
     execution_id: str, evaluation_scope: dict[str, Any], evaluation_timestamp: str
 ) -> str:
-    """Deterministic correlation identifier for a request, derived from its envelope.
+    """Request-envelope correlation key — deterministically derived from the attempted request
+    envelope (execution identifier, Evaluation Scope, Evaluation Timestamp).
 
-    Introduces no wall-clock or RNG dependency (the engine reads no clock), so identical
-    requests yield identical correlation identifiers. The exact derivation is local.
+    It correlates refusal records belonging to the **same attempted request envelope**; it is
+    **not** a unique event or per-attempt identifier. Repeated identical attempts therefore share
+    the same key, while individual refusal events stay distinct through their separate Operational
+    Log records and Evaluation Timestamps. Introduces no wall-clock or RNG dependency (the engine
+    reads no clock); the exact derivation is local.
     """
     return content_hash(
         {
@@ -302,7 +306,7 @@ def _refuse_identifier_reuse(
     )
     record_refusal(
         _refusal_log_target(log_root, store_root),
-        category=RefusalCategory.IDENTIFIER_REUSE.value,
+        category=RefusalCategory.IDENTIFIER_REUSE,
         attempted_execution_id=execution_id,
         requested_scope=evaluation_scope,
         timestamp=evaluation_timestamp,
@@ -311,7 +315,7 @@ def _refuse_identifier_reuse(
         correlation_id=_correlation_id(execution_id, evaluation_scope, evaluation_timestamp),
         existing_execution_id=execution_id,
     )
-    raise ExecutionRefusedError(RefusalCategory.IDENTIFIER_REUSE.value, reason)
+    raise ExecutionRefusedError(RefusalCategory.IDENTIFIER_REUSE, reason)
 
 
 def run_execution(
@@ -345,6 +349,15 @@ def run_execution(
     unsupported content that appears unreferenced — ends the Execution ``Failed`` with
     configuration evidence and no authoritative compliance or coverage results (AC 12),
     never a raised error.
+
+    Two Execution-creation preconditions are enforced **before any Execution exists**, each
+    raising ``ExecutionRefusedError`` (no Execution, no Execution Status, no Evidence) and
+    recording one structured ``ERROR`` event in the Operational Log: a reused Execution Identifier
+    already present in the store (AC 15), and unavailable exclusive execution rights (AC 13). A
+    refusal is distinct from a Failed Execution, which is created and then aborts. Optional
+    ``log_root`` names the Operational Log directory for those refusal events; optional
+    ``control_root`` names the mechanism-neutral execution-control directory used to hold exclusive
+    execution rights. Both default beside the store when not supplied.
     """
     # Execution-creation precondition (AC 15): a reused Execution Identifier is refused before
     # any Execution exists — no Execution, no Status, no Evidence; the existing execution is left
@@ -410,15 +423,19 @@ def _acquire_rights_or_refuse(
     )
     try:
         return control.acquire(target_control)
-    except control.ExecutionRightsUnavailable as exc:
+    except control._ExecutionRightsUnavailable as exc:
         reason = (
             "exclusive execution rights for the declared Evaluation Scope are unavailable "
             f"(execution-control directory {str(target_control)!r} is occupied); the request is "
             "refused before Execution creation."
         )
+        # Rights unavailability may be known without an attributable conflicting Execution: an
+        # arbitrary pre-existing control-directory occupant need not represent an Execution, and T6
+        # performs no attribution — so no conflicting identifier is recorded (existing_execution_id
+        # stays None) rather than inferring or inventing an owner (Contract A).
         record_refusal(
             _refusal_log_target(log_root, store_root),
-            category=RefusalCategory.RIGHTS_UNAVAILABLE.value,
+            category=RefusalCategory.RIGHTS_UNAVAILABLE,
             attempted_execution_id=execution_id,
             requested_scope=evaluation_scope,
             timestamp=evaluation_timestamp,
@@ -427,7 +444,7 @@ def _acquire_rights_or_refuse(
             correlation_id=_correlation_id(execution_id, evaluation_scope, evaluation_timestamp),
             existing_execution_id=None,
         )
-        raise ExecutionRefusedError(RefusalCategory.RIGHTS_UNAVAILABLE.value, reason) from exc
+        raise ExecutionRefusedError(RefusalCategory.RIGHTS_UNAVAILABLE, reason) from exc
 
 
 def _execute_governed(

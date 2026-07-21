@@ -7,6 +7,11 @@ these paths with adversarial fixtures but must not redefine the behavior.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .enums import RefusalCategory
+
 
 class GovernanceEngineError(Exception):
     """Base class for all engine errors."""
@@ -59,6 +64,6 @@ class ExecutionRefusedError(GovernanceEngineError):
     from a Failed Execution, which is created and then aborts with configuration evidence.
     """
 
-    def __init__(self, category: str, message: str) -> None:
+    def __init__(self, category: RefusalCategory, message: str) -> None:
         self.category = category
         super().__init__(message)

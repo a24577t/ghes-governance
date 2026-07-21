@@ -18,7 +18,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from .enums import SensitivityClassification, Severity
+from .enums import RefusalCategory, SensitivityClassification, Severity
 
 REFUSAL_LOG_NAME = "operational.log"
 
@@ -26,7 +26,7 @@ REFUSAL_LOG_NAME = "operational.log"
 def record_refusal(
     log_root: str | Path,
     *,
-    category: str,
+    category: RefusalCategory,
     attempted_execution_id: str,
     requested_scope: dict[str, Any],
     timestamp: str,
@@ -39,11 +39,14 @@ def record_refusal(
 
     Sensitivity is constant ``Public`` in this synthetic slice (ADR-0009). The record is a plain
     operational event — deliberately not the schema-versioned ``kind``/``payload`` evidence shape,
-    so it can never be mistaken for Authoritative Evidence.
+    so it can never be mistaken for Authoritative Evidence. ``existing_execution_id`` may be
+    ``None`` when rights unavailability is known without an attributable conflicting Execution
+    (AC 13; see ``execution._acquire_rights_or_refuse``). Closed-set values are serialized to their
+    JSON string form here, at the output boundary.
     """
     event = {
         "severity": Severity.ERROR.value,
-        "category": category,
+        "category": category.value,
         "attempted_execution_id": attempted_execution_id,
         "existing_execution_id": existing_execution_id,
         "requested_scope": requested_scope,

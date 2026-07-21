@@ -1,17 +1,26 @@
 """Execution-control — exclusive execution rights for the Execution boundary (T6, AC 13).
 
 Realizes ADR-0010's "one active execution ... never interleaved" as this slice's single global
-lock. The engine is given a mechanism-neutral execution-control directory (configuration) and
-acquires exclusive rights by atomically claiming an engine-owned reservation inside it, refusing
-when the directory is already occupied.
+lock (scope-aware coordination is deferred beyond T6). The engine is given a mechanism-neutral
+execution-control directory (configuration).
 
 The reservation marker (its name, type, and contents) and the acquisition and release mechanism
-are **private to this module**. The only observable contract is:
+are **private to this module**. The contract (Contract A) is:
 
-- a **non-empty** execution-control directory means exclusive execution rights are unavailable;
-- a **completed** acquisition leaves the directory **empty** again (release);
-- a **refusal** leaves any pre-existing occupancy **unchanged** (the engine never alters, renames,
-  or removes an entry it did not create).
+- **Atomic mutual exclusion among governance-engine executions** sharing an execution-control
+  directory is guaranteed through the engine's **private reservation identity**: two engine
+  executions can never both cross the Execution boundary, so evidence is never interleaved
+  (ADR-0010).
+- A **pre-existing non-empty** execution-control directory is treated as rights unavailable and is
+  refused — this is also the deterministic **AC 13 seam-level test affordance** (a test places an
+  arbitrary entry before calling the engine and observes refusal).
+- A **refusal** leaves the observed occupancy **unchanged** (the engine never alters, renames, or
+  removes an entry it did not create).
+- A **completed** Execution leaves the directory **empty** (release).
+- **No guarantee** is claimed against arbitrary, differently named external filesystem entries
+  created **concurrently during acquisition** — that is outside ADR-0010 (which concerns
+  executions), outside the manual/single-process POC boundary, and not portably enforceable with
+  standard-library primitives.
 """
 
 from __future__ import annotations
@@ -23,14 +32,14 @@ from pathlib import Path
 _RESERVATION_NAME = ".execution-reservation"
 
 
-class ExecutionRightsUnavailable(Exception):
+class _ExecutionRightsUnavailable(Exception):
     """Internal signal: exclusive execution rights could not be acquired (control dir occupied)."""
 
 
 def acquire(control_root: str | Path) -> Path:
     """Atomically acquire exclusive execution rights under ``control_root``; return the reservation.
 
-    Refuses (raises :class:`ExecutionRightsUnavailable`) when the control directory is already
+    Refuses (raises :class:`_ExecutionRightsUnavailable`) when the control directory is already
     non-empty — occupied by a prior or foreign holder, or any other entry. Otherwise it claims an
     engine-owned reservation with an atomic, exclusive create, so that even if two requests both
     observe an empty directory only one crosses the boundary (a bare check-then-create would let
@@ -39,12 +48,12 @@ def acquire(control_root: str | Path) -> Path:
     root = Path(control_root)
     root.mkdir(parents=True, exist_ok=True)
     if any(root.iterdir()):
-        raise ExecutionRightsUnavailable(str(root))
+        raise _ExecutionRightsUnavailable(str(root))
     reservation = root / _RESERVATION_NAME
     try:
         reservation.mkdir(exist_ok=False)  # atomic interlock against a racing acquirer
     except FileExistsError as exc:
-        raise ExecutionRightsUnavailable(str(root)) from exc
+        raise _ExecutionRightsUnavailable(str(root)) from exc
     return reservation
 
 
