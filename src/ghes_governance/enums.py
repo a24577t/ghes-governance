@@ -119,3 +119,29 @@ class UnknownClassification(StrEnum):
 
     INCOMPLETE_OBSERVATION = "IncompleteObservation"
     GOVERNANCE_RESULT = "GovernanceResult"
+
+
+class Severity(StrEnum):
+    """Closed operational-log severity model (ADR-0009), shipped complete.
+
+    Only ``ERROR`` is reachable in this slice: a pre-execution refusal is an integrity failure
+    (ADR-0009 places "execution/integrity/write/evidence failures" at ``ERROR``). The remaining
+    levels ship as degenerate values, populated by later work — never a later schema migration.
+    """
+
+    ERROR = "ERROR"
+    WARN = "WARN"
+    INFO = "INFO"
+    DEBUG = "DEBUG"
+    TRACE = "TRACE"
+
+
+class RefusalCategory(StrEnum):
+    """Why a pre-execution request was refused, recorded on the operational refusal event.
+
+    Both categories are reachable in T6: identifier reuse (AC 15) and exclusive execution rights
+    unavailable (AC 13).
+    """
+
+    IDENTIFIER_REUSE = "identifier-reuse"
+    RIGHTS_UNAVAILABLE = "rights-unavailable"

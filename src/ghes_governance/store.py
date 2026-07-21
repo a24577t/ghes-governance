@@ -27,6 +27,15 @@ def execution_dir(store_root: str | Path, execution_id: str) -> Path:
     return Path(store_root) / execution_id
 
 
+def execution_exists(store_root: str | Path, execution_id: str) -> bool:
+    """Read-only: whether the target evidence store already holds this Execution Identifier.
+
+    The T6 Execution-creation precondition (AC 15) consults this *before* any Execution is
+    created; it never writes, so a refused request touches nothing below the Execution boundary.
+    """
+    return execution_dir(store_root, execution_id).exists()
+
+
 def write_execution(
     store_root: str | Path,
     execution_id: str,

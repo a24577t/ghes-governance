@@ -7,6 +7,11 @@ these paths with adversarial fixtures but must not redefine the behavior.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .enums import RefusalCategory
+
 
 class GovernanceEngineError(Exception):
     """Base class for all engine errors."""
@@ -46,3 +51,19 @@ class EvidenceUnreadableError(TamperSuspectError):
     at the store boundary). Without a readable commitment the evidence set cannot be
     validated, so it is treated as tamper-suspect; the original cause is chained.
     """
+
+
+class ExecutionRefusedError(GovernanceEngineError):
+    """A request was refused before an Execution was created — a pre-execution refusal.
+
+    Raised at the Execution boundary when an Execution-creation precondition is unmet: the
+    Execution Identifier is already present in the target evidence store (AC 15), or exclusive
+    execution rights are unavailable (AC 13). No Execution exists, so no Execution Status is
+    produced and no authoritative Evidence is written; the refusal is recorded only as a
+    structured ``ERROR`` event in the Operational Log (ADR-0009's separate data class). Distinct
+    from a Failed Execution, which is created and then aborts with configuration evidence.
+    """
+
+    def __init__(self, category: RefusalCategory, message: str) -> None:
+        self.category = category
+        super().__init__(message)
