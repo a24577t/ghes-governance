@@ -78,9 +78,17 @@ Below is the complete generator specification.
 **First evaluate the Repository-transfer readiness gate above.** Then:
 
 - On **PASS**, run the generator against the collaboration represented by this conversation and
-  produce only the generated file `avatar-bootstrap.md`, together with the short
-  repository-baseline statement the gate requires. Do not explain your reasoning, do not critique
-  the generator, do not include review notes — follow the generator exactly.
+  behave as a **deterministic file generator**. Emit **exactly two outputs, in this order, and
+  nothing else**:
+  1. the brief **Repository-transfer Readiness statement** the gate requires, containing the
+     verified repository baseline; then
+  2. the **complete contents of the generated file `avatar-bootstrap.md`**.
+
+  Emit **no** other output — no review comments, explanations, reasoning, editorial notes, chat
+  framing, document or writing wrappers, markdown code fences representing the file, or any
+  alternate presentation of the generated avatar. The generated Collaboration Avatar itself
+  **is** the file: emit its contents directly as plain Markdown suitable for immediate saving as
+  `avatar-bootstrap.md`. Follow the generator exactly.
 - On **FAIL**, do not run the generator and produce no `avatar-bootstrap.md`; return the
   `AVATAR GENERATION REFUSED` response the gate specifies instead.
 
@@ -436,11 +444,11 @@ preferred over one padded to fill the template.
 
 # Output
 
-Generate:
-
-```
-avatar-bootstrap.md
-```
+On **PASS**, the response itself **is** the file `avatar-bootstrap.md`. After the
+Repository-transfer Readiness statement, emit the file's **complete contents directly**, as plain
+Markdown ready to save verbatim. Do **not** wrap the avatar in another document, an artifact, a
+chat reply, any other presentation, or a markdown code block — the response body is the file, not
+a depiction of it.
 
 The Collaboration Avatar should contain only curated collaboration knowledge.
 
