@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from . import ENGINE_VERSION
+from . import ENGINE_VERSION, control
 from .bundle import load_bundle, load_estate
 from .canonical import content_hash
 from .enums import (
@@ -23,9 +23,10 @@ from .enums import (
     CoverageState,
     ExecutionStatus,
     PolicyOutcome,
+    RefusalCategory,
     UnknownClassification,
 )
-from .errors import BundleError
+from .errors import BundleError, ExecutionRefusedError
 from .evaluation import (
     AuthorityConflict,
     AuthorityUndeterminable,
@@ -43,7 +44,8 @@ from .model import (
     manifest_header,
     policy_results_payload,
 )
-from .store import write_execution
+from .oplog import record_refusal
+from .store import execution_exists, write_execution
 from .validation import validate_bundle
 
 _INVENTORY_FIELDS = ("id", "organization", "name", "visibility", "archived", "fork", "ghes_version")
@@ -256,6 +258,62 @@ def _write_failed_execution(
     )
 
 
+def _refusal_log_target(log_root: str | Path | None, store_root: str | Path) -> Path:
+    """Where a pre-execution refusal event is written: the given operational-log location, or a
+    default Operational Log directory beside the store when none is supplied (a local default)."""
+    return Path(log_root) if log_root is not None else Path(store_root).parent / "operational-log"
+
+
+def _correlation_id(
+    execution_id: str, evaluation_scope: dict[str, Any], evaluation_timestamp: str
+) -> str:
+    """Deterministic correlation identifier for a request, derived from its envelope.
+
+    Introduces no wall-clock or RNG dependency (the engine reads no clock), so identical
+    requests yield identical correlation identifiers. The exact derivation is local.
+    """
+    return content_hash(
+        {
+            "execution_id": execution_id,
+            "evaluation_scope": evaluation_scope,
+            "evaluation_timestamp": evaluation_timestamp,
+        }
+    )
+
+
+def _refuse_identifier_reuse(
+    *,
+    log_root: str | Path | None,
+    store_root: str | Path,
+    execution_id: str,
+    evaluation_scope: dict[str, Any],
+    evaluation_timestamp: str,
+    engine_version: str,
+) -> None:
+    """Refuse a request whose Execution Identifier is already present in the store (AC 15).
+
+    Records one structured ``ERROR`` operational refusal event, then raises
+    ``ExecutionRefusedError`` — before any Execution-creation side effect, so nothing is written
+    below the Execution boundary and the existing execution is left byte-unmodified.
+    """
+    reason = (
+        f"Execution Identifier {execution_id!r} is already present in the target evidence "
+        "store; the request is refused before Execution creation (ADR-0009 immutability)."
+    )
+    record_refusal(
+        _refusal_log_target(log_root, store_root),
+        category=RefusalCategory.IDENTIFIER_REUSE.value,
+        attempted_execution_id=execution_id,
+        requested_scope=evaluation_scope,
+        timestamp=evaluation_timestamp,
+        engine_version=engine_version,
+        reason=reason,
+        correlation_id=_correlation_id(execution_id, evaluation_scope, evaluation_timestamp),
+        existing_execution_id=execution_id,
+    )
+    raise ExecutionRefusedError(RefusalCategory.IDENTIFIER_REUSE.value, reason)
+
+
 def run_execution(
     *,
     bundle_path: str | Path,
@@ -264,6 +322,8 @@ def run_execution(
     evaluation_timestamp: str,
     execution_id: str,
     store_root: str | Path,
+    log_root: str | Path | None = None,
+    control_root: str | Path | None = None,
     engine_version: str = ENGINE_VERSION,
 ) -> ExecutionResult:
     """Run an Execution and write its Evidence — the Execution boundary seam.
@@ -286,6 +346,103 @@ def run_execution(
     configuration evidence and no authoritative compliance or coverage results (AC 12),
     never a raised error.
     """
+    # Execution-creation precondition (AC 15): a reused Execution Identifier is refused before
+    # any Execution exists — no Execution, no Status, no Evidence; the existing execution is left
+    # byte-unmodified. Checked before bundle validation, so a reused identifier is refused
+    # regardless of bundle validity (a Failed Execution requires an Execution to exist first — T5).
+    if execution_exists(store_root, execution_id):
+        _refuse_identifier_reuse(
+            log_root=log_root,
+            store_root=store_root,
+            execution_id=execution_id,
+            evaluation_scope=evaluation_scope,
+            evaluation_timestamp=evaluation_timestamp,
+            engine_version=engine_version,
+        )
+
+    # Execution-creation precondition (AC 13): acquire exclusive execution rights before any
+    # Execution-creation side effect. Acquisition is atomic, so two requests cannot both cross the
+    # boundary; unavailable rights are refused (no Execution). Release is guaranteed on every
+    # terminating path below by ``finally`` — success, Failed Execution (T5), or error.
+    reservation = _acquire_rights_or_refuse(
+        control_root=control_root,
+        store_root=store_root,
+        log_root=log_root,
+        execution_id=execution_id,
+        evaluation_scope=evaluation_scope,
+        evaluation_timestamp=evaluation_timestamp,
+        engine_version=engine_version,
+    )
+    try:
+        return _execute_governed(
+            bundle_path=bundle_path,
+            estate_path=estate_path,
+            evaluation_scope=evaluation_scope,
+            evaluation_timestamp=evaluation_timestamp,
+            execution_id=execution_id,
+            store_root=store_root,
+            engine_version=engine_version,
+        )
+    finally:
+        control.release(reservation)
+
+
+def _acquire_rights_or_refuse(
+    *,
+    control_root: str | Path | None,
+    store_root: str | Path,
+    log_root: str | Path | None,
+    execution_id: str,
+    evaluation_scope: dict[str, Any],
+    evaluation_timestamp: str,
+    engine_version: str,
+) -> Path:
+    """Acquire exclusive execution rights (AC 13), or refuse before any Execution exists.
+
+    On unavailable rights, records one ``ERROR`` rights-unavailable operational event and raises
+    ``ExecutionRefusedError`` — no Execution is created, and the control directory's occupancy is
+    left unchanged (the engine never alters an entry it did not create).
+    """
+    target_control = (
+        Path(control_root)
+        if control_root is not None
+        else Path(store_root).parent / "execution-control"
+    )
+    try:
+        return control.acquire(target_control)
+    except control.ExecutionRightsUnavailable as exc:
+        reason = (
+            "exclusive execution rights for the declared Evaluation Scope are unavailable "
+            f"(execution-control directory {str(target_control)!r} is occupied); the request is "
+            "refused before Execution creation."
+        )
+        record_refusal(
+            _refusal_log_target(log_root, store_root),
+            category=RefusalCategory.RIGHTS_UNAVAILABLE.value,
+            attempted_execution_id=execution_id,
+            requested_scope=evaluation_scope,
+            timestamp=evaluation_timestamp,
+            engine_version=engine_version,
+            reason=reason,
+            correlation_id=_correlation_id(execution_id, evaluation_scope, evaluation_timestamp),
+            existing_execution_id=None,
+        )
+        raise ExecutionRefusedError(RefusalCategory.RIGHTS_UNAVAILABLE.value, reason) from exc
+
+
+def _execute_governed(
+    *,
+    bundle_path: str | Path,
+    estate_path: str | Path,
+    evaluation_scope: dict[str, Any],
+    evaluation_timestamp: str,
+    execution_id: str,
+    store_root: str | Path,
+    engine_version: str,
+) -> ExecutionResult:
+    """Run the Execution body once exclusive rights are held: validate the bundle (Failed path,
+    T5), then discover, evaluate, and write Evidence. Extracted so ``run_execution`` guarantees
+    release of execution rights around every terminating path (success, Failed, or error)."""
     validation_errors = validate_bundle(bundle_path)
     if validation_errors:
         return _write_failed_execution(
