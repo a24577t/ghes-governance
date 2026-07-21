@@ -150,9 +150,10 @@ Below is the complete generator specification.
 
   Emit **no** other output — no review comments, explanations, reasoning, editorial notes, chat
   framing, document or writing wrappers, markdown code fences representing the file, or any
-  alternate presentation of the generated avatar. The generated Collaboration Avatar itself
-  **is** the file: emit its contents directly as plain Markdown suitable for immediate saving as
-  `avatar-bootstrap.md`. Follow the generator exactly.
+  alternate presentation of the generated file. The generated **file is** the response: emit its
+  contents directly as plain Markdown suitable for immediate saving as `avatar-bootstrap.md`. The
+  file comprises the static **Bootstrap Instructions** then the **Collaboration Avatar** (see
+  *Output structure*). Follow the generator exactly.
 - On **FAIL**, do not run the generator and produce no `avatar-bootstrap.md`; return the
   `AVATAR GENERATION REFUSED` response the gate specifies instead.
 
@@ -475,12 +476,59 @@ If uncertain, omit it.
 
 ---
 
-# Output structure
+# Bootstrap Instructions (static — generator-owned; prepended to every generated file)
 
-The generated avatar follows this preferred structure. It opens with a concise boundary
-and authority statement, then uses only the sections that have qualifying durable content:
+Every generated `avatar-bootstrap.md` **begins** with this exact, static block, byte-for-byte the
+same from session to session. It is **not** collaboration knowledge and is **not** produced by the
+editorial process — it exists solely to tell the incoming collaboration how to consume the avatar.
+Emit it verbatim as the first part of the file, immediately before the Collaboration Avatar:
 
 ```markdown
+# Bootstrap Instructions
+
+This file is a self-contained incoming-session bootstrap artifact with two parts: these Bootstrap
+Instructions (how to use the avatar) and the Collaboration Avatar below (durable collaboration
+knowledge). Before proceeding, the incoming collaboration must:
+
+1. Recognize that the Collaboration Avatar below carries **only durable, cross-project
+   collaboration knowledge** — how this collaboration thinks and works. It is not repository state,
+   project state, architecture, methodology, or authority.
+2. Treat the avatar as **supplementary collaboration context only**, never as repository authority.
+3. **Independently reconstruct current repository state from the authoritative repository
+   artifacts** — not from this file.
+4. Treat the **repository artifacts as authoritative**: if anything here conflicts with the
+   repository, the repository prevails.
+5. **Not** assume any project state, version, or next activity from the avatar.
+6. Continue the collaboration using the avatar as collaboration context only.
+```
+
+**Ownership boundary.** The Bootstrap Instructions describe **how to use** the avatar; the
+Collaboration Avatar describes **how the collaboration operates**. Do not move repository or project
+knowledge into the avatar, and do not move collaboration knowledge into the Bootstrap Instructions.
+Keep the two parts separate and labeled.
+
+---
+
+# Output structure
+
+On PASS the generated `avatar-bootstrap.md` is a **complete, self-contained incoming-session
+bootstrap artifact** — a repository owner can paste it into a brand-new session with no added
+instructions. The full PASS emission is, in order:
+
+1. the **Repository-transfer Readiness statement** (the gate's evidence statement — output one, before the file);
+2. the **file `avatar-bootstrap.md`**, in two clearly separated parts: the static **Bootstrap
+   Instructions** (above), then the **Collaboration Avatar** (curated durable collaboration
+   knowledge from the editorial process).
+
+The file therefore follows this structure — the Bootstrap Instructions verbatim, then the
+Collaboration Avatar, which opens with a concise boundary and authority statement and uses only the
+avatar sections that have qualifying durable content:
+
+```markdown
+# Bootstrap Instructions
+
+<the static Bootstrap Instructions block above, verbatim>
+
 # Collaboration Avatar
 
 [Concise boundary and authority statement]
@@ -500,9 +548,12 @@ and authority statement, then uses only the sections that have qualifying durabl
 ## Deferred Questions
 ```
 
-Not every output uses every section. **Omit any section with no qualifying durable
-content** — an avatar with no abandoned directions and no deferred questions is normal, and
-preferred over one padded to fill the template.
+The **Bootstrap Instructions** part is static and is never omitted or edited. Within the
+**Collaboration Avatar** part, not every section applies: **omit any avatar section with no
+qualifying durable content** — an avatar with no abandoned directions and no deferred questions is
+normal, and preferred over one padded to fill the template. The avatar-content rules in **Output**
+(only curated collaboration knowledge; the "Do not include" list) apply to the Collaboration Avatar
+part only, never to the static Bootstrap Instructions.
 
 ---
 
