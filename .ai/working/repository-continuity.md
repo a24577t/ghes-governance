@@ -1,7 +1,7 @@
 # Repository Continuity Artifact
 
-**Updated:** 2026-07-21 (post methodology/collaboration-maintenance reconciliation; PRs #39–#51 merged; no implementation work in flight).
-**Base:** `main` with Vertical Slice 1 **T0–T5 merged** (PRs #16, #19, #23, #24, #29, #35) on the ADR-0015-accepted baseline (PR #27), the methodology + standards refresh adopted (PR #17), the post-T4 status reconciliation (PR #34), and deterministic collaboration startup plus the Decision-Gated Implementation Lifecycle merged (PRs #30–#32, #26). The **Methodology Validation subsystem** was introduced (PR #37, merge `630301b`), followed by a round of methodology/collaboration maintenance (PRs #39–#51; see *Methodology & collaboration maintenance* below). `main` at merge `0ef0cba`: **34 tests green**.
+**Updated:** 2026-07-21 (post-T6 reconciliation; Vertical Slice 1 **T6 merged** — PR #53, merge `a7e7863`; no implementation work in flight).
+**Base:** `main` with Vertical Slice 1 **T0–T5 merged** (PRs #16, #19, #23, #24, #29, #35) on the ADR-0015-accepted baseline (PR #27), the methodology + standards refresh adopted (PR #17), the post-T4 status reconciliation (PR #34), and deterministic collaboration startup plus the Decision-Gated Implementation Lifecycle merged (PRs #30–#32, #26). The **Methodology Validation subsystem** was introduced (PR #37, merge `630301b`), followed by a round of methodology/collaboration maintenance (PRs #39–#51; see *Methodology & collaboration maintenance* below). Vertical Slice 1 **T6 — execution-creation preconditions & the refusal lifecycle** (AC 13 / AC 15) is now merged (**PR #53**, merge `a7e7863`). `main` at merge `a7e7863`: **39 tests green**.
 
 A temporary, single-use bridge (MADR-0001; `create-repository-continuity.md`). It carries only uncommitted, in-flight intent and **pointers** to authoritative artifacts — never a second copy of committed history. Subordinate to authoritative repository state (the repository always prevails); retired or re-pointed as slices complete. It is **not required** for a clean, fully-committed, stable state; this instance records the current resume point only.
 
@@ -17,11 +17,11 @@ A temporary, single-use bridge (MADR-0001; `create-repository-continuity.md`). I
 
 ## In flight
 
-- **This reconciliation** — a docs-only change recording the completed methodology/collaboration maintenance (PRs #39–#51; see *Methodology & collaboration maintenance* below) and the explicit **T6 entry-gate** (see *Recommended Next Activity — T6* below). **No implementation work is in flight**; **T6 remains the active next implementation work item and has not begun**.
+- **This reconciliation** — a docs-only change recording Vertical Slice 1 **T6** delivered and merged (**PR #53**, merge `a7e7863`; AC 13 + AC 15) and setting the next activity (see *Recommended Next Activity — T7* below). **No implementation work is in flight**; **T7 (the final Slice 1 increment) is the active next implementation work item and has not begun**.
 
 ## Delivered — pointer only (not restated here)
 
-T0–T5 are committed authoritative history: see `.ai/architecture/STATUS.md` and PRs #16, #19, #23, #24, #29, #35. This artifact does not summarize completed work.
+T0–T6 are committed authoritative history: see `.ai/architecture/STATUS.md` and PRs #16, #19, #23, #24, #29, #35, #53. This artifact does not summarize completed work.
 
 ## Methodology & collaboration maintenance (completed)
 
@@ -39,27 +39,27 @@ Committed history (the PRs and `.ai/architecture/STATUS.md`); pointers only, not
 - **Evidence-based readiness gate — Repository Transfer Baseline (PR #49, merge `cf0a27b`).** The gate certifies readiness from repository **evidence**: either direct authoritative repository state, or a deterministic **Repository Transfer Baseline** captured from the actual repository immediately before generation — making the gate implementable by an engine without repository access while preserving repository authority (memory is never authoritative; the gate verifies but never repairs). FAIL triggers are explicit: evidence absent, reconciliation incomplete, authority unestablished, evidence internally inconsistent. Readiness semantics, ownership, authority model, editorial workflow, and output contract unchanged.
 - **Two-part incoming-session bootstrap artifact (PR #51, merge `0ef0cba`).** The generated `avatar-bootstrap.md` is now a complete, self-contained artifact in two clearly separated parts: static, generator-owned **Bootstrap Instructions** (how to consume the avatar — supplementary collaboration context only; reconstruct repository state from the authoritative artifacts; the repository prevails on any conflict) then the **Collaboration Avatar** preserved unchanged as the separate durable collaboration-knowledge component. Documentation/output-structure only; no readiness-gate, baseline, ownership, editorial, validation, implementation, or T6 change. The static instructions and generator spec are authoritative in `collaboration-avatar-generator.md` and are not duplicated here.
 
-Vertical Slice 1 **T0–T5 remain complete**; **T6 is the next implementation ticket and has not begun.**
+Vertical Slice 1 **T0–T6 remain complete** (T6 merged — PR #53, merge `a7e7863`); **T7 (the final Slice 1 increment) is the next implementation ticket and has not begun.**
 
-## Recommended Next Activity — T6 (not started)
+## Recommended Next Activity — T7 (not started)
 
-Next implementation work item: **T6 — validate execution-creation preconditions and the refusal lifecycle** (Slice 1 of 7). T5 fixed the outcome for an invalid bundle (a `Failed` Execution that still writes evidence); T6 establishes the distinct **pre-execution refusal** outcomes — a request refused before any Execution exists, producing no Execution Status and no authoritative evidence — for single-execution rights unavailable (AC 13 / S13) and Execution Identifier reuse (AC 15 / S15).
+Next implementation work item: **T7 — the final Vertical Slice 1 — Observe-Mode Tracer increment.** T6 established the pre-execution refusal outcomes (AC 13 / AC 15); T7 completes the Slice 1 increment sequence. Not started; no branch open. The ticket is authored via the normal spec-derived process, referencing `docs/specifications/vertical-slice-1-observe-mode-tracer.md`, when its turn comes.
 
-- **Predecessor:** T5 merged (PR #35) — satisfied.
+- **Predecessor:** T6 merged (PR #53, merge `a7e7863`) — satisfied.
 - **Seams:** the two public seams only — `run_execution`, `derive_reports`. No new public seam.
 - **Method:** TDD red-before-green (§12), in force from T1 onward.
-- **Deferred — do not pull forward:** T7; predicate operators / aggregation precedence; `StrEnum` migration; tooling installation.
+- **Deferred — do not pull forward:** predicate operators / aggregation precedence; the `StrEnum` migration of the T0 evidence-spine sets; tooling installation (`mypy` / `ruff` / CI); the residual TOCTOU `FileExistsError` backstop translation (Python Coding Standard §11); scope-aware lock queueing (Slice 7).
 
-**T6 entry is gated — do not begin T6 before all of the following hold:**
+**T7 entry follows the established gated process — do not begin T7 before all of the following hold:**
 
 1. all current maintenance and continuity work is **merged** (this reconciliation PR included);
 2. the **release boundary is validated** — the repository is internally consistent, Repository Version `v0.3.0` equals the latest release tag, the test suite is green, `STATUS.md` and this artifact are accurate, links resolve, and the documented next activity is coherent;
 3. the **outgoing avatar has been generated** from that validated baseline — the readiness-gated `collaboration-avatar-generator.md` returns **PASS** against it (a **FAIL** / `AVATAR GENERATION REFUSED` blocks the transfer);
 4. the repository owner (**Eric**) **manually transfers** the generated avatar into the incoming session;
 5. the **incoming session executes the repository startup sequence** (`load-order.md` → durable contract → operator-guide **S1** → `session-bootstrap.md`) and reports **Context Established**; and
-6. the **T6 decision gate is explicitly opened**.
+6. the **T7 decision gate is explicitly opened**.
 
-Creating an empty T6 branch from the validated `main` **does not** start T6: no T6 analysis, tests, code, or commits occur until the six conditions above hold.
+Creating an empty T7 branch from the validated `main` **does not** start T7: no T7 analysis, tests, code, or commits occur until the six conditions above hold.
 
 ## Work Not Yet Committed / Must Remain Separate
 
