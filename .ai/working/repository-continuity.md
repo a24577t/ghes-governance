@@ -1,7 +1,7 @@
 # Repository Continuity Artifact
 
-**Updated:** 2026-07-21 (post-T6 reconciliation; Vertical Slice 1 **T6 merged** — PR #53, merge `a7e7863`; no implementation work in flight).
-**Base:** `main` with Vertical Slice 1 **T0–T5 merged** (PRs #16, #19, #23, #24, #29, #35) on the ADR-0015-accepted baseline (PR #27), the methodology + standards refresh adopted (PR #17), the post-T4 status reconciliation (PR #34), and deterministic collaboration startup plus the Decision-Gated Implementation Lifecycle merged (PRs #30–#32, #26). The **Methodology Validation subsystem** was introduced (PR #37, merge `630301b`), followed by a round of methodology/collaboration maintenance (PRs #39–#51; see *Methodology & collaboration maintenance* below). Vertical Slice 1 **T6 — execution-creation preconditions & the refusal lifecycle** (AC 13 / AC 15) is now merged (**PR #53**, merge `a7e7863`). `main` at merge `a7e7863`: **39 tests green**.
+**Updated:** 2026-07-21 (post-PR-#55 reconciliation; Vertical Slice 1 **T7 first increment merged** — AC 9/10/11/14, **PR #55**, merge `7fe18e0`; no implementation work in flight).
+**Base:** `main` with Vertical Slice 1 **T0–T5 merged** (PRs #16, #19, #23, #24, #29, #35) on the ADR-0015-accepted baseline (PR #27), the methodology + standards refresh adopted (PR #17), the post-T4 status reconciliation (PR #34), and deterministic collaboration startup plus the Decision-Gated Implementation Lifecycle merged (PRs #30–#32, #26). The **Methodology Validation subsystem** was introduced (PR #37, merge `630301b`), followed by a round of methodology/collaboration maintenance (PRs #39–#51; see *Methodology & collaboration maintenance* below). Vertical Slice 1 **T6 — execution-creation preconditions & the refusal lifecycle** (AC 13 / AC 15) merged (**PR #53**, merge `a7e7863`), and **T7's first increment — standing integrity/traceability/logging/read-only invariants (AC 9 / AC 10 / AC 11 / AC 14)** now merged (**PR #55**, merge `7fe18e0`). `main` at merge `7fe18e0`: **59 tests green**.
 
 A temporary, single-use bridge (MADR-0001; `create-repository-continuity.md`). It carries only uncommitted, in-flight intent and **pointers** to authoritative artifacts — never a second copy of committed history. Subordinate to authoritative repository state (the repository always prevails); retired or re-pointed as slices complete. It is **not required** for a clean, fully-committed, stable state; this instance records the current resume point only.
 
@@ -17,11 +17,11 @@ A temporary, single-use bridge (MADR-0001; `create-repository-continuity.md`). I
 
 ## In flight
 
-- **This reconciliation** — a docs-only change recording Vertical Slice 1 **T6** delivered and merged (**PR #53**, merge `a7e7863`; AC 13 + AC 15) and setting the next activity (see *Recommended Next Activity — T7* below). **No implementation work is in flight**; **T7 (the final Slice 1 increment) is the active next implementation work item and has not begun**.
+- **This reconciliation** — a docs-only change recording Vertical Slice 1 **T7's first increment** delivered and merged (**PR #55**, merge `7fe18e0`; AC 9 / AC 10 / AC 11 / AC 14) and updating the next activity (see *Recommended Next Activity* below). **No implementation work is in flight**; **T7 is partially delivered — not complete — and its residual work (AC 1, AC 6, AC 8) has not begun; no residual implementation branch is open**.
 
 ## Delivered — pointer only (not restated here)
 
-T0–T6 are committed authoritative history: see `.ai/architecture/STATUS.md` and PRs #16, #19, #23, #24, #29, #35, #53. This artifact does not summarize completed work.
+T0–T6 and T7's first increment (AC 9/10/11/14) are committed authoritative history: see `.ai/architecture/STATUS.md` and PRs #16, #19, #23, #24, #29, #35, #53, #55. This artifact does not summarize completed work.
 
 ## Methodology & collaboration maintenance (completed)
 
@@ -39,27 +39,18 @@ Committed history (the PRs and `.ai/architecture/STATUS.md`); pointers only, not
 - **Evidence-based readiness gate — Repository Transfer Baseline (PR #49, merge `cf0a27b`).** The gate certifies readiness from repository **evidence**: either direct authoritative repository state, or a deterministic **Repository Transfer Baseline** captured from the actual repository immediately before generation — making the gate implementable by an engine without repository access while preserving repository authority (memory is never authoritative; the gate verifies but never repairs). FAIL triggers are explicit: evidence absent, reconciliation incomplete, authority unestablished, evidence internally inconsistent. Readiness semantics, ownership, authority model, editorial workflow, and output contract unchanged.
 - **Two-part incoming-session bootstrap artifact (PR #51, merge `0ef0cba`).** The generated `avatar-bootstrap.md` is now a complete, self-contained artifact in two clearly separated parts: static, generator-owned **Bootstrap Instructions** (how to consume the avatar — supplementary collaboration context only; reconstruct repository state from the authoritative artifacts; the repository prevails on any conflict) then the **Collaboration Avatar** preserved unchanged as the separate durable collaboration-knowledge component. Documentation/output-structure only; no readiness-gate, baseline, ownership, editorial, validation, implementation, or T6 change. The static instructions and generator spec are authoritative in `collaboration-avatar-generator.md` and are not duplicated here.
 
-Vertical Slice 1 **T0–T6 remain complete** (T6 merged — PR #53, merge `a7e7863`); **T7 (the final Slice 1 increment) is the next implementation ticket and has not begun.**
+Vertical Slice 1 **T0–T6 remain complete**, and **T7's first increment (AC 9/10/11/14) is merged** (PR #55, merge `7fe18e0`); **T7 is partially delivered — not complete — with residual work AC 1, AC 6, and AC 8 not yet begun and no residual branch open.**
 
-## Recommended Next Activity — T7 (not started)
+## Recommended Next Activity — T7 residual (AC 1 / AC 6 / AC 8; not started)
 
-Next implementation work item: **T7 — the final Vertical Slice 1 — Observe-Mode Tracer increment.** T6 established the pre-execution refusal outcomes (AC 13 / AC 15); T7 completes the Slice 1 increment sequence. Not started; no branch open. The ticket is authored via the normal spec-derived process, referencing `docs/specifications/vertical-slice-1-observe-mode-tracer.md`, when its turn comes.
+T7's first increment — the standing integrity/traceability/logging/read-only invariants **AC 9 / AC 10 / AC 11 / AC 14** — is delivered and merged (**PR #55**, merge `7fe18e0`; **59 tests green**), under the established gated process (decision gate opened; Shape → Build red→green → Verify-diff → Architecture Conformance Review → merge). **T7 is partially delivered — not complete.** The residual work is the remaining Slice-1 acceptance criteria: **AC 1** (full reference happy-path evaluation — per-requirement Technical/Interpretation/Requirement outcomes and Policy-Outcome aggregation over a reference estate/bundle), **AC 6** (unknown-strategy handling → Technical Outcome `Unknown` plus a configuration finding), and **AC 8** (aggregation precedence — each reachable Policy Outcome, `NonCompliant` outranking `Unknown`, `NotApplicable` aggregation-neutral). The residual ticket is authored via the normal spec-derived process, referencing `docs/specifications/vertical-slice-1-observe-mode-tracer.md`, when its turn comes. **Not started; no residual branch open.**
 
-- **Predecessor:** T6 merged (PR #53, merge `a7e7863`) — satisfied.
+- **Predecessor:** T7 first increment merged (PR #55, merge `7fe18e0`) — satisfied.
 - **Seams:** the two public seams only — `run_execution`, `derive_reports`. No new public seam.
-- **Method:** TDD red-before-green (§12), in force from T1 onward.
-- **Deferred — do not pull forward:** predicate operators / aggregation precedence; the `StrEnum` migration of the T0 evidence-spine sets; tooling installation (`mypy` / `ruff` / CI); the residual TOCTOU `FileExistsError` backstop translation (Python Coding Standard §11); scope-aware lock queueing (Slice 7).
+- **Method:** TDD red-before-green (§12).
+- **Deferred — do not pull forward:** the `StrEnum` migration of the T0 evidence-spine sets; tooling installation (`mypy` / `ruff` / CI); the residual TOCTOU `FileExistsError` backstop translation (Python Coding Standard §11); scope-aware lock queueing (Slice 7). *(Predicate operators and aggregation precedence are no longer deferred — they are the residual T7 work, AC 6 and AC 8.)*
 
-**T7 entry follows the established gated process — do not begin T7 before all of the following hold:**
-
-1. all current maintenance and continuity work is **merged** (this reconciliation PR included);
-2. the **release boundary is validated** — the repository is internally consistent, Repository Version `v0.3.0` equals the latest release tag, the test suite is green, `STATUS.md` and this artifact are accurate, links resolve, and the documented next activity is coherent;
-3. the **outgoing avatar has been generated** from that validated baseline — the readiness-gated `collaboration-avatar-generator.md` returns **PASS** against it (a **FAIL** / `AVATAR GENERATION REFUSED` blocks the transfer);
-4. the repository owner (**Eric**) **manually transfers** the generated avatar into the incoming session;
-5. the **incoming session executes the repository startup sequence** (`load-order.md` → durable contract → operator-guide **S1** → `session-bootstrap.md`) and reports **Context Established**; and
-6. the **T7 decision gate is explicitly opened**.
-
-Creating an empty T7 branch from the validated `main` **does not** start T7: no T7 analysis, tests, code, or commits occur until the six conditions above hold.
+**The residual T7 increment follows the same DGIL discipline** — authored spec-first, Shape → Build (TDD red→green) → Verify-diff → Architecture Conformance Review → merge. It has not begun; creating an empty branch from `main` does **not** start it, and no residual analysis, tests, code, or commits exist yet.
 
 ## Work Not Yet Committed / Must Remain Separate
 
