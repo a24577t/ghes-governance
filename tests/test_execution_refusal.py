@@ -87,10 +87,12 @@ def test_reuse_is_refused_and_leaves_existing_execution_untouched(
     after_report = derive_reports(store_root=store, execution_id=EXECUTION_ID).json_report
     assert after_report == report_before
 
-    # The single required effect, outside the boundary: one structured ERROR refusal event.
-    events = _read_events(log_root)
-    assert len(events) == 1
-    event = events[0]
+    # The single required effect of the refusal, outside the boundary: one structured ERROR refusal
+    # event. (The first, successful execution also emits execution-time operational events to the
+    # same log — a separate data class; refusal events are the ones carrying a refusal ``category``.)
+    refusals = [e for e in _read_events(log_root) if "category" in e]
+    assert len(refusals) == 1
+    event = refusals[0]
     assert event["severity"] == "ERROR"
     assert event["category"] == "identifier-reuse"
     assert event["attempted_execution_id"] == EXECUTION_ID
@@ -118,11 +120,13 @@ def test_reuse_refusal_correlation_identifier_is_deterministic(
         with pytest.raises(ExecutionRefusedError):
             _run(store, log_root, bundle=governed_bundle, estate=governed_estate)
 
-    events = _read_events(log_root)
-    assert len(events) == 2
+    # Two refusal events (execution-time events from the first successful run share the log but
+    # carry no refusal ``category``).
+    refusals = [e for e in _read_events(log_root) if "category" in e]
+    assert len(refusals) == 2
     # Deterministically derived from the request envelope: identical across identical requests,
     # with no wall-clock or RNG dependency.
-    assert events[0]["correlation_id"] == events[1]["correlation_id"]
+    assert refusals[0]["correlation_id"] == refusals[1]["correlation_id"]
 
 
 # --- AC 13: exclusive execution rights unavailable -------------------------------------------
