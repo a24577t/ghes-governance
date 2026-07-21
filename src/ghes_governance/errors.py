@@ -21,6 +21,17 @@ class BundleError(GovernanceEngineError):
     """The desired-state bundle or synthetic estate could not be loaded."""
 
 
+class ConfigurationError(GovernanceEngineError):
+    """A supplied engine configuration or input is invalid, detected before any Execution side
+    effect. Distinct from a Failed Execution (a created Execution that aborts with evidence) and
+    from a pre-execution refusal (a governance-semantic AC 13 / AC 15 refusal recorded as an
+    operational event): a configuration error creates no Execution and writes nothing at all —
+    no execution right, no Evidence, and no operational event.
+
+    Raised, for example, when the Operational Log directory would physically overlap the evidence
+    store: the two are separate data classes (ADR-0009) and must occupy disjoint directories."""
+
+
 class TamperSuspectError(GovernanceEngineError):
     """Evidence validation failed; the evidence set is tamper-suspect.
 

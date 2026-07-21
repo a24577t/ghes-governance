@@ -27,7 +27,7 @@ from .enums import (
     Severity,
     UnknownClassification,
 )
-from .errors import BundleError, ExecutionRefusedError
+from .errors import BundleError, ConfigurationError, ExecutionRefusedError
 from .evaluation import (
     AuthorityConflict,
     AuthorityUndeterminable,
@@ -262,8 +262,30 @@ def _write_failed_execution(
 def _operational_log_target(log_root: str | Path | None, store_root: str | Path) -> Path:
     """Where operational events (pre-execution refusals and execution-time stage/detail events) are
     written: the given operational-log location, or a default Operational Log directory beside the
-    store when none is supplied (a local default). Always outside the evidence store."""
+    store when none is supplied (a local default). The default is a sibling of the store, always
+    outside it; an explicitly supplied ``log_root`` is validated, never silently relocated."""
     return Path(log_root) if log_root is not None else Path(store_root).parent / "operational-log"
+
+
+def _reject_overlapping_roots(store_root: str | Path, log_target: str | Path) -> None:
+    """Reject an Operational Log directory that physically overlaps the evidence store.
+
+    The Operational Log and Authoritative Evidence are separate data classes (ADR-0009) and must
+    occupy disjoint directories, so an operational event can never be written inside the evidence
+    store. Overlap is any of: the two roots are equal, the log is beneath the store, or the store
+    is beneath the log. Checked with path-aware ancestry on resolved paths — never a string-prefix
+    comparison, so ``.../store`` and ``.../store-2`` are correctly treated as disjoint. Raised
+    before any execution right, Execution, Evidence, or operational event is created; an explicitly
+    supplied ``log_root`` is never silently relocated.
+    """
+    store = Path(store_root).resolve(strict=False)
+    log = Path(log_target).resolve(strict=False)
+    if store == log or store in log.parents or log in store.parents:
+        raise ConfigurationError(
+            f"operational log root {str(log)!r} overlaps the evidence store root {str(store)!r}; "
+            "the Operational Log and Authoritative Evidence are separate data classes (ADR-0009) "
+            "and must occupy disjoint directories — supply a log_root outside the store"
+        )
 
 
 def _correlation_id(
@@ -370,6 +392,13 @@ def run_execution(
     extension of the seam signature — existing callers are unaffected — and the governance execution
     contract (evidence-determining inputs and outputs) is unchanged.
     """
+    # Configuration validation, before any side effect: the Operational Log and the evidence store
+    # are separate data classes (ADR-0009) and must occupy disjoint directories. Resolve the log
+    # target once and reject an overlapping configuration here — before any execution right,
+    # Execution, Evidence, or operational event (including the refusal events below).
+    log_target = _operational_log_target(log_root, store_root)
+    _reject_overlapping_roots(store_root, log_target)
+
     # Execution-creation precondition (AC 15): a reused Execution Identifier is refused before
     # any Execution exists — no Execution, no Status, no Evidence; the existing execution is left
     # byte-unmodified. Checked before bundle validation, so a reused identifier is refused
@@ -405,7 +434,7 @@ def run_execution(
             evaluation_timestamp=evaluation_timestamp,
             execution_id=execution_id,
             store_root=store_root,
-            log_target=_operational_log_target(log_root, store_root),
+            log_target=log_target,
             log_level=log_level,
             engine_version=engine_version,
         )
@@ -526,7 +555,7 @@ def _execute_governed(
         for repo in repositories:
             _log(
                 Severity.DEBUG,
-                "pair.processed",
+                "pair.processing",
                 {"policy_id": policy_id, "repository_id": repo["id"]},
             )
             selection = select_authoritative_binding(
