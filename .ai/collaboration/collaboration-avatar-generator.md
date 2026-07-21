@@ -12,9 +12,22 @@
 # Repository-transfer readiness gate (evaluate before generating)
 
 Avatar generation is **conditional on repository-transfer readiness**. Before producing any
-refreshed `avatar-bootstrap.md` content, the generator must verify that the **outgoing
-repository has already been closed out, reconciled, and verified as current** for the session
-being handed off.
+refreshed `avatar-bootstrap.md` content, the generator must confirm — **from repository
+evidence** — that the **outgoing repository has already been closed out, reconciled, and verified
+as current** for the session being handed off.
+
+The generator does **not** require direct repository access. It certifies readiness from whichever
+of the following authoritative evidence sources is available:
+
+- **direct authoritative repository state**, for an engine that can inspect the repository itself; or
+- a **Repository Transfer Baseline** (defined below) — a deterministic evidence snapshot captured
+  from the actual repository, immediately before generation, by an implementation agent or the
+  repository owner who verified it.
+
+The baseline **is repository evidence, not conversation memory.** Conversation memory, assistant
+recollection, and any undated or unverifiable narrative report are never acceptable evidence and
+never establish readiness; the repository remains the sole authority, and the baseline only
+transports its verified facts.
 
 This gate is a **verification, not a repair**. The generator does **not** perform closeout,
 update `STATUS.md`, merge pull requests, reconcile the Repository Continuity Artifact, or repair
@@ -24,8 +37,11 @@ status, and reconciliation transitions. The generator only confirms they have ha
 
 ## Readiness preconditions
 
-Verify **all** of the following against authoritative repository state — not against
-conversation memory, assistant recollection, or an implementation report:
+Evaluate **all** of the following against the supplied repository evidence — direct authoritative
+repository state, or the Repository Transfer Baseline below — and never against conversation
+memory, assistant recollection, or an undated / unverifiable narrative report. Each precondition
+must be **demonstrable from that evidence**; a precondition the evidence cannot establish is
+treated as unmet:
 
 1. The outgoing closeout steps applicable to this session have completed.
 2. `STATUS.md` reflects the latest completed repository-affecting work.
@@ -36,14 +52,47 @@ conversation memory, assistant recollection, or an implementation report:
 6. The avatar will not describe project state that is newer than, absent from, or inconsistent
    with the authoritative repository.
 
+## Repository Transfer Baseline (evidence contract)
+
+A **Repository Transfer Baseline** is a deterministic, self-contained snapshot of authoritative
+repository state, captured from the **actual repository** immediately before generation by an
+agent or the repository owner who verified it. It lets an engine that cannot inspect the
+repository evaluate every precondition above from evidence rather than from memory. It is
+transport for repository facts, never a second authority: the repository always prevails, and a
+stale, incomplete, or inconsistent baseline fails the gate.
+
+A baseline must carry at least the following, each a verified repository fact:
+
+- **Repository** — name / identifier.
+- **Branch** — the authoritative branch evaluated (normally the integration branch).
+- **HEAD commit** — full commit SHA of that branch.
+- **Base branch** — if the evaluated ref is not the integration branch (else *n/a*).
+- **Pull request(s)** — number and state for any PR relevant to this transfer, or *none open*.
+- **Working tree status** — clean, or the exact uncommitted / untracked paths (repository-owner
+  working files identified as such).
+- **STATUS.md verification** — that `STATUS.md` reflects the latest completed repository-affecting
+  work: its recorded phase, current objective / next activity, and version counters.
+- **Repository Continuity verification** — that the Repository Continuity Artifact (and any other
+  continuity / reconciliation artifact) is current, or is legitimately absent for a clean state.
+- **Outstanding reconciliation status** — any required reconciliation or closeout not yet
+  complete, or *none outstanding*.
+- **Repository next activity** — the documented next activity, and that it agrees with actual state.
+- **Verification timestamp** — when the repository was verified to produce this baseline.
+
+Add any further fields a specific transfer needs for deterministic evaluation (for example the
+latest release tag versus the recorded Repository Version). The baseline must be **internally
+consistent** — every field reflects the same verified instant and no field contradicts another. A
+baseline that omits a required field, is undated, or is internally inconsistent is **insufficient
+evidence** and fails the gate.
+
 ## Outcome (deterministic; exactly one)
 
 ### PASS — every precondition above is verified
 
 - Generate the refreshed `avatar-bootstrap.md` content per the specification below.
-- State the **repository baseline** against which readiness was verified, in terms of the
-  repository identifiers available to you — such as the branch, the commit, the relevant pull
-  request / merge state, and the Status / Continuity state.
+- State the **Repository Transfer Baseline** (or direct repository state) against which readiness
+  was verified — its branch, HEAD commit, relevant pull request / merge state, and Status /
+  Continuity state.
 - Do **not** make the avatar authoritative for repository state. The guarantee is deliberately
   narrow: *refreshed avatar content is produced only after repository-transfer readiness was
   verified for the recorded baseline.* It is **not** the claim that "if `avatar-bootstrap.md`
@@ -51,7 +100,21 @@ conversation memory, assistant recollection, or an implementation report:
   avatar file may still be present; incoming startup must still **independently verify** that the
   supplied avatar and the current repository baseline remain compatible.
 
-### FAIL — any precondition above is unverified or unmet
+### FAIL — readiness cannot be demonstrated from the evidence
+
+Fail whenever **any** of these holds:
+
+- a precondition above is unverified or unmet;
+- required evidence is **absent** — neither direct repository state nor a Repository Transfer
+  Baseline is supplied, or the baseline omits a required field;
+- repository **reconciliation or closeout is incomplete** — outstanding reconciliation is reported,
+  or `STATUS.md` / the Repository Continuity Artifact is not current;
+- repository **authority cannot be established** from the evidence — state rests only on
+  conversation memory, recollection, or an undated / unverifiable narrative report;
+- the repository **evidence is internally inconsistent** — the baseline's HEAD, pull-request state,
+  working-tree status, and STATUS / Continuity verification do not agree.
+
+On FAIL:
 
 - Do **not** generate partial, provisional, or best-effort `avatar-bootstrap.md` content, and
   produce no avatar file.
@@ -61,11 +124,12 @@ conversation memory, assistant recollection, or an implementation report:
   AVATAR GENERATION REFUSED
   ```
 
-- Enumerate the specific readiness preconditions that failed or could not be verified.
+- Enumerate the specific readiness preconditions or missing / inconsistent evidence that failed.
 - Provide immediately executable remediation — the concrete closeout / reconciliation steps the
-  repository owner must complete.
-- Instruct the repository owner to complete repository reconciliation and **rerun this
-  generator**.
+  repository owner must complete, including **regenerating the Repository Transfer Baseline** after
+  reconciliation.
+- Instruct the repository owner to complete repository reconciliation and **rerun this generator**
+  with a refreshed baseline.
 
 Proceed to the generator specification below **only on PASS**.
 
