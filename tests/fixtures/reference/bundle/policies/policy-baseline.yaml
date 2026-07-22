@@ -1,0 +1,41 @@
+id: policy.baseline
+version: 1
+purpose: >-
+  The reference composite policy (spec §157): three addressable requirements exercising the
+  slice's reachable Requirement Outcomes — one Compliant (secret scanning), one NonCompliant
+  (branch protection), and one Unknown-producing (fork network controls). The Unknown-producing
+  requirement is evaluated by the Slice-2 DesiredStateEvaluation strategy this release does not
+  register, so where it is intended it produces a GovernanceResult Unknown. It applies only to
+  forks, so on a non-fork repository it is NotApplicable and drops out of coverage entirely
+  (ADR-0007:30) — leaving every intended requirement Covered.
+requirements:
+  - id: req.secret-scanning
+    strategy:
+      identifier: PredicateEvaluation
+      version: 1
+    predicate:
+      equals:
+        setting: secret_scanning
+        value: enabled
+  - id: req.branch-protection
+    strategy:
+      identifier: PredicateEvaluation
+      version: 1
+    predicate:
+      equals:
+        setting: branch_protection
+        value: enabled
+  - id: req.fork-network-controls
+    applicability:
+      reason: RepositoryCharacteristic
+      when:
+        equals:
+          attribute: fork
+          value: true
+    strategy:
+      identifier: DesiredStateEvaluation
+      version: 1
+    predicate:
+      equals:
+        setting: fork_network_controls
+        value: enabled

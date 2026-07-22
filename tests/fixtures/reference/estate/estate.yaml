@@ -1,0 +1,25 @@
+enterprise: acme
+ghes_version: "3.13"
+organizations:
+  - octo-org
+repositories:
+  - id: octo-org/service-a
+    organization: octo-org
+    name: service-a
+    visibility: private
+    archived: false
+    fork: false
+    ghes_version: "3.13"
+    settings:
+      secret_scanning: enabled
+      branch_protection: disabled
+  - id: octo-org/service-b
+    organization: octo-org
+    name: service-b
+    visibility: private
+    archived: false
+    fork: true
+    ghes_version: "3.13"
+    settings:
+      secret_scanning: enabled
+      branch_protection: disabled
