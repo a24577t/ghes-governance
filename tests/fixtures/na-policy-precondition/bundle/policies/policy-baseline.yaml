@@ -1,6 +1,10 @@
 id: policy.baseline
 version: 1
-purpose: A Compliant requirement plus one NotApplicable by PolicyPrecondition (applies only to public repositories).
+purpose: >-
+  A Compliant requirement plus one NotApplicable by PolicyPrecondition (applies only to public
+  repositories). The NotApplicable requirement's predicate would be NonCompliant if it were
+  evaluated (it requires secret_scanning=disabled, but the repo has it enabled) — so its
+  NotApplicability, not a would-be-pass, is what keeps the policy Compliant.
 requirements:
   - id: req.secret-scanning
     strategy:
@@ -23,4 +27,4 @@ requirements:
     predicate:
       equals:
         setting: secret_scanning
-        value: enabled
+        value: disabled
