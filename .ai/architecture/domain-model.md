@@ -1,6 +1,6 @@
 # Domain Model — GHES Governance Platform
 
-Consolidation artifact assembled from candidate ADRs 0001–0012 and `CONTEXT.md` (2026-07-13), refined by ADR-0013 and ADR-0014 (2026-07-15). It introduces no new concepts; where this document and an ADR disagree, the ADR is authoritative. Terminology follows `CONTEXT.md` exactly.
+Consolidation artifact assembled from candidate ADRs 0001–0012 and `CONTEXT.md` (2026-07-13), refined by ADR-0013 and ADR-0014 (2026-07-15), and ADR-0015 (2026-07-19). It introduces no new concepts; where this document and an ADR disagree, the ADR is authoritative. Terminology follows `CONTEXT.md` exactly.
 
 ---
 
