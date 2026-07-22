@@ -22,19 +22,27 @@ from .enums import (
     EnforcementMode,
     EvaluationRole,
     GovernanceInterpretation,
+    NotApplicableReason,
     PolicyOutcome,
     ProviderResult,
     RequirementOutcome,
     TechnicalOutcome,
     UnknownClassification,
 )
-from .errors import BundleError
+from .errors import BundleError, DeferredCapabilityError
 
 # The single authoritative registry of evaluation strategies this engine release supports. Both
 # requirement dispatch and the "available" list named in an unsupported-strategy finding derive
 # from this one source of truth — never a duplicated supported-strategy list (ADR-0012; the
 # registry is the seam Slice 2 populates).
 REGISTERED_STRATEGIES: tuple[tuple[str, int], ...] = (("PredicateEvaluation", 1),)
+
+# NotApplicable reasons a policy may declare on a requirement in this slice. PlatformCapability-
+# Unavailable ships in the closed set but is engine-derived from the Capability Matrix (Slice 3),
+# so it is never author-declarable here (ADR-0007; policies cannot invent semantic categories).
+_DECLARABLE_NOT_APPLICABLE_REASONS: frozenset[str] = frozenset(
+    {NotApplicableReason.REPOSITORY_CHARACTERISTIC.value, NotApplicableReason.POLICY_PRECONDITION.value}
+)
 
 
 @dataclass(frozen=True)
@@ -245,6 +253,18 @@ def evaluate_policy(policy: dict[str, Any], repo: dict[str, Any]) -> dict[str, A
     }
 
 
+def explanatory_requirement_outcomes(findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Project evaluated requirement findings to their ``(requirement_id, requirement_outcome)``
+    pairs for explanatory-only authority-conflict evidence. A NotApplicable requirement carries no
+    Requirement Outcome and is excluded — evaluation, not its consumers, owns which findings are
+    evaluated outcomes and how NotApplicable is represented."""
+    return [
+        {"requirement_id": f["requirement_id"], "requirement_outcome": f["requirement_outcome"]}
+        for f in findings
+        if "requirement_outcome" in f
+    ]
+
+
 def _provider_lookup(repo: dict[str, Any], attribute: str) -> tuple[ProviderResult, Any]:
     """The GitHub-native attribute provider under the three-result contract.
 
@@ -277,6 +297,13 @@ def _evaluate_requirement(
     classification (CONTEXT.md:159). Both the identifier being unknown and the version being
     unsupported are the same behaviour: one miss on the ``REGISTERED_STRATEGIES`` key.
     """
+    # Stage 1 — applicability gate (before strategy dispatch and predicate evaluation). A
+    # NotApplicable requirement is logically excluded: it never reaches stage 2 or stage 3.
+    not_applicable = _requirement_applicability(policy_id, repo, requirement)
+    if not_applicable is not None:
+        return not_applicable, None
+
+    # Stage 2 — strategy dispatch (AC 6).
     strategy = requirement.get("strategy", {})
     requested = (strategy.get("identifier"), strategy.get("version"))
     if requested not in REGISTERED_STRATEGIES:
@@ -292,6 +319,7 @@ def _evaluate_requirement(
         config = _unsupported_strategy_finding(policy_id, repo["id"], requirement["id"], requested)
         return finding, config
 
+    # Stage 3 — predicate evaluation.
     technical = _evaluate_predicate(requirement.get("predicate"), repo)
     interpretation = GovernanceInterpretation.NONE  # no Governance Relief in this slice (T4)
     outcome = _interpret(technical, interpretation)
@@ -304,6 +332,50 @@ def _evaluate_requirement(
         "requirement_outcome": outcome.value,
     }
     return finding, None
+
+
+def _requirement_applicability(
+    policy_id: str, repo: dict[str, Any], requirement: dict[str, Any]
+) -> dict[str, Any] | None:
+    """Resolve a requirement's optional pre-evaluation applicability precondition.
+
+    Returns a NotApplicable requirement finding when the repository does not satisfy the declared
+    ``applicability.when`` condition (reusing the shared three-valued applicability engine —
+    CONTEXT.md:130), or ``None`` when the requirement is Applicable (no precondition, or the
+    condition holds) and should proceed to strategy dispatch and predicate evaluation.
+
+    A NotApplicable requirement finding carries only its applicability and closed reason; it has no
+    Technical/Requirement Outcome because it is never evaluated — the domain model records
+    applicability explicitly exactly when it *diverts* a requirement from evaluation (an Applicable
+    requirement's applicability is implied by the presence of its outcome). An applicability that
+    resolves ``Unknown`` is a deferred capability (see ``DeferredCapabilityError``).
+    """
+    spec = requirement.get("applicability")
+    if spec is None:
+        return None
+    outcome = resolve_applicability(spec.get("when"), repo)
+    if outcome is ApplicabilityOutcome.APPLICABLE:
+        return None
+    if outcome is ApplicabilityOutcome.NOT_APPLICABLE:
+        reason = spec.get("reason")
+        if reason not in _DECLARABLE_NOT_APPLICABLE_REASONS:
+            raise BundleError(
+                f"requirement {requirement['id']!r} declares NotApplicable reason {reason!r}, "
+                "which is not author-declarable in this slice; the declarable reasons are "
+                f"{sorted(_DECLARABLE_NOT_APPLICABLE_REASONS)}"
+            )
+        return {
+            "policy_id": policy_id,
+            "repository_id": repo["id"],
+            "requirement_id": requirement["id"],
+            "applicability": ApplicabilityOutcome.NOT_APPLICABLE.value,
+            "not_applicable_reason": reason,
+        }
+    raise DeferredCapabilityError(
+        f"requirement {requirement['id']!r} has applicability Unknown; per-requirement "
+        "applicability Unknown is deferred to a later increment (ADR-0006:38 / CONTEXT.md:159) — "
+        "it requires the requirement-level Execution-Status derivation not built in AC 8b"
+    )
 
 
 def _unsupported_strategy_finding(
@@ -346,7 +418,10 @@ def _interpret(
 
 
 def _aggregate(findings: list[dict[str, Any]]) -> tuple[PolicyOutcome, CoverageState]:
-    outcomes = {f["requirement_outcome"] for f in findings}
+    # Aggregate over the intended (evaluated) requirements only: a NotApplicable requirement carries
+    # no Requirement Outcome and is therefore aggregation-neutral for Compliance and dropped from
+    # Coverage entirely — coverage measures intended controls only (ADR-0006:34, ADR-0007:30).
+    outcomes = {f["requirement_outcome"] for f in findings if "requirement_outcome" in f}
     if RequirementOutcome.NON_COMPLIANT.value in outcomes:
         policy = PolicyOutcome.NON_COMPLIANT
     elif RequirementOutcome.UNKNOWN.value in outcomes:

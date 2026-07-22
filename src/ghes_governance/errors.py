@@ -21,6 +21,18 @@ class BundleError(GovernanceEngineError):
     """The desired-state bundle or synthetic estate could not be loaded."""
 
 
+class DeferredCapabilityError(GovernanceEngineError):
+    """A ratified capability that is intentionally not built in the current increment was reached.
+
+    Distinct from a bug or an accidental gap: the behavior is defined by the authoritative record
+    but its implementation is scheduled for a later increment, and this makes that boundary
+    explicit and fail-loud rather than silently mis-handling the case. Example: a per-requirement
+    applicability that resolves ``Unknown`` — ratified to yield a requirement ``Unknown`` /
+    ``IncompleteObservation`` (ADR-0006, CONTEXT.md) — is deferred here because it requires the
+    requirement-level Execution-Status derivation not built in this increment; AC 8b's fixtures use
+    only determinable applicability attributes, so this is never reached in delivered behavior."""
+
+
 class ConfigurationError(GovernanceEngineError):
     """A supplied engine configuration or input is invalid, detected before any Execution side
     effect. Distinct from a Failed Execution (a created Execution that aborts with evidence) and
