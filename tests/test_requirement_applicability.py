@@ -72,6 +72,18 @@ def test_reachable_policy_outcomes_and_precedence(
     assert report["compliance"]["outcomes"][0]["policy_outcome"] == expected
 
 
+def test_noncompliant_outranks_unknown_requires_both_requirements(tmp_path: Path) -> None:
+    # Prove the *precedence*, not merely the aggregate: assert the requirement set actually contains
+    # both the outranked Unknown requirement and the NonCompliant requirement, and that NonCompliant
+    # wins. (The aggregate-only assertion would still pass if the Unknown were absent.)
+    store = tmp_path / "store"
+    report = _report(store, "noncompliant-outranks-unknown")
+    outcomes = {f.get("requirement_outcome") for f in _req_findings(store).values()}
+    assert "NonCompliant" in outcomes, "the NonCompliant requirement is present"
+    assert "Unknown" in outcomes, "the outranked Unknown requirement is present"
+    assert report["compliance"]["outcomes"][0]["policy_outcome"] == "NonCompliant"
+
+
 def test_not_applicable_repository_characteristic_is_neutral(tmp_path: Path) -> None:
     store = tmp_path / "store"
     report = _report(store, "na-repository-characteristic")
@@ -81,9 +93,12 @@ def test_not_applicable_repository_characteristic_is_neutral(tmp_path: Path) -> 
     assert na["applicability"] == "NotApplicable"
     assert na["not_applicable_reason"] == "RepositoryCharacteristic"
     # NotApplicable never reached strategy dispatch or predicate evaluation.
-    assert "technical_outcome" not in na and "requirement_outcome" not in na
+    assert "technical_outcome" not in na
+    assert "requirement_outcome" not in na
 
-    # The applicable requirement is Compliant; the NotApplicable one is neutral in both dimensions.
+    # The applicable requirement is Compliant. The NotApplicable requirement would be NonCompliant
+    # if it were evaluated (its predicate fails on this repo) — so its neutrality, not a would-be
+    # pass, is what keeps both dimensions clean: Policy Outcome Compliant, Coverage Covered.
     assert req["req.secret-scanning"]["requirement_outcome"] == "Compliant"
     assert report["compliance"]["outcomes"][0]["policy_outcome"] == "Compliant"
     assert report["coverage"]["states"][0]["coverage_state"] == "Covered"
@@ -98,7 +113,13 @@ def test_not_applicable_policy_precondition_is_neutral(tmp_path: Path) -> None:
     na = req["req.public-only"]
     assert na["applicability"] == "NotApplicable"
     assert na["not_applicable_reason"] == "PolicyPrecondition"
+    # NotApplicable never reached strategy dispatch or predicate evaluation.
+    assert "technical_outcome" not in na
     assert "requirement_outcome" not in na
+
+    # The applicable requirement is Compliant. The NotApplicable requirement would be NonCompliant
+    # if it were evaluated — so its neutrality is what keeps the policy Compliant / Covered.
+    assert req["req.secret-scanning"]["requirement_outcome"] == "Compliant"
     assert report["compliance"]["outcomes"][0]["policy_outcome"] == "Compliant"
     assert report["coverage"]["states"][0]["coverage_state"] == "Covered"
 
