@@ -26,8 +26,15 @@ from .enums import (
     ProviderResult,
     RequirementOutcome,
     TechnicalOutcome,
+    UnknownClassification,
 )
 from .errors import BundleError
+
+# The single authoritative registry of evaluation strategies this engine release supports. Both
+# requirement dispatch and the "available" list named in an unsupported-strategy finding derive
+# from this one source of truth — never a duplicated supported-strategy list (ADR-0012; the
+# registry is the seam Slice 2 populates).
+REGISTERED_STRATEGIES: tuple[tuple[str, int], ...] = (("PredicateEvaluation", 1),)
 
 
 @dataclass(frozen=True)
@@ -218,11 +225,21 @@ def _undetermined_attributes(scope: Any, repo: dict[str, Any]) -> list[str]:
 
 
 def evaluate_policy(policy: dict[str, Any], repo: dict[str, Any]) -> dict[str, Any]:
-    """Evaluate an applicable governed pair: per-requirement findings plus aggregated outcomes."""
-    findings = [_evaluate_requirement(policy["id"], repo, req) for req in policy["requirements"]]
+    """Evaluate an applicable governed pair: per-requirement findings, any governance-configuration
+    findings the requirements produced (unsupported strategy — AC 6), and the aggregated Policy
+    Outcome and Coverage State. Evaluation is the semantic owner of these findings; execution only
+    assembles them into evidence."""
+    findings: list[dict[str, Any]] = []
+    governance_findings: list[dict[str, Any]] = []
+    for requirement in policy["requirements"]:
+        finding, config = _evaluate_requirement(policy["id"], repo, requirement)
+        findings.append(finding)
+        if config is not None:
+            governance_findings.append(config)
     policy_outcome, coverage_state = _aggregate(findings)
     return {
         "findings": findings,
+        "governance_findings": governance_findings,
         "policy_outcome": policy_outcome.value,
         "coverage_state": coverage_state.value,
     }
@@ -250,22 +267,62 @@ def _binding_active(binding: dict[str, Any], timestamp: str) -> bool:
 
 def _evaluate_requirement(
     policy_id: str, repo: dict[str, Any], requirement: dict[str, Any]
-) -> dict[str, Any]:
+) -> tuple[dict[str, Any], dict[str, Any] | None]:
+    """Evaluate one requirement to its per-requirement finding and, when the requirement's declared
+    strategy is unregistered, a governance-configuration finding (AC 6).
+
+    An unregistered ``(identifier, version)`` is neither a bundle-validation failure (AC 12) nor an
+    observation gap (AC 3): it is a determined governance verdict — Technical Outcome ``Unknown``
+    with Unknown Classification ``GovernanceResult`` (spec §141), the causal record carrying its
+    classification (CONTEXT.md:159). Both the identifier being unknown and the version being
+    unsupported are the same behaviour: one miss on the ``REGISTERED_STRATEGIES`` key.
+    """
     strategy = requirement.get("strategy", {})
-    if (strategy.get("identifier"), strategy.get("version")) != ("PredicateEvaluation", 1):
-        raise NotImplementedError(
-            "only PredicateEvaluation v1 is registered; other strategies are T2/T5"
-        )
+    requested = (strategy.get("identifier"), strategy.get("version"))
+    if requested not in REGISTERED_STRATEGIES:
+        finding = {
+            "policy_id": policy_id,
+            "repository_id": repo["id"],
+            "requirement_id": requirement["id"],
+            "technical_outcome": TechnicalOutcome.UNKNOWN.value,
+            "governance_interpretation": GovernanceInterpretation.NONE.value,
+            "requirement_outcome": RequirementOutcome.UNKNOWN.value,
+            "unknown_classification": UnknownClassification.GOVERNANCE_RESULT.value,
+        }
+        config = _unsupported_strategy_finding(policy_id, repo["id"], requirement["id"], requested)
+        return finding, config
+
     technical = _evaluate_predicate(requirement.get("predicate"), repo)
     interpretation = GovernanceInterpretation.NONE  # no Governance Relief in this slice (T4)
     outcome = _interpret(technical, interpretation)
-    return {
+    finding = {
         "policy_id": policy_id,
         "repository_id": repo["id"],
         "requirement_id": requirement["id"],
         "technical_outcome": technical.value,
         "governance_interpretation": interpretation.value,
         "requirement_outcome": outcome.value,
+    }
+    return finding, None
+
+
+def _unsupported_strategy_finding(
+    policy_id: str, repository_id: str, requirement_id: str, requested: tuple[Any, Any]
+) -> dict[str, Any]:
+    """A governance-configuration finding for a requirement declaring an unregistered
+    ``(strategy identifier, version)``: names the requested pair and the available pairs, both
+    derived from ``REGISTERED_STRATEGIES`` so dispatch and reporting share one source of truth
+    (AC 6 §172; story 18; ADR-0006 per-requirement finding)."""
+    return {
+        "kind": "unsupported_strategy",
+        "policy_id": policy_id,
+        "repository_id": repository_id,
+        "requirement_id": requirement_id,
+        "requested": {"identifier": requested[0], "version": requested[1]},
+        "available": [
+            {"identifier": identifier, "version": version}
+            for identifier, version in REGISTERED_STRATEGIES
+        ],
     }
 
 

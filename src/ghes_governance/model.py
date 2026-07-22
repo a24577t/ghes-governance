@@ -96,10 +96,14 @@ def policy_results_payload(results: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def governance_findings_payload(findings: list[dict[str, Any]]) -> dict[str, Any]:
-    """Governance-configuration findings (e.g. authority conflict), sorted deterministically."""
+    """Governance-configuration findings (e.g. authority conflict, unsupported strategy), sorted
+    deterministically. The ``requirement_id`` tiebreaker keeps multiple per-requirement findings
+    for one pair (unsupported strategy) byte-deterministic; pair-level authority findings carry no
+    ``requirement_id`` and are unaffected (unique on the first three keys)."""
     return {
         "findings": sorted(
-            findings, key=lambda f: (f["kind"], f["policy_id"], f["repository_id"])
+            findings,
+            key=lambda f: (f["kind"], f["policy_id"], f["repository_id"], f.get("requirement_id", "")),
         )
     }
 

@@ -1,0 +1,12 @@
+id: policy.baseline
+version: 1
+purpose: Exercises an unsupported evaluation strategy version (AC 6).
+requirements:
+  - id: req.unsupported-version
+    strategy:
+      identifier: PredicateEvaluation
+      version: 2
+    predicate:
+      equals:
+        setting: secret_scanning
+        value: enabled
