@@ -109,6 +109,18 @@ class ApplicabilityOutcome(StrEnum):
     UNKNOWN = "Unknown"
 
 
+class NotApplicableReason(StrEnum):
+    """Closed reason category carried by every NotApplicable requirement (ADR-0007), shipped
+    complete. ``RepositoryCharacteristic`` and ``PolicyPrecondition`` are reachable in this slice
+    and author-declarable; ``PlatformCapabilityUnavailable`` is engine-derived from the Capability
+    Matrix (Slice 3) and ships dormant — populated by later work, never a later schema migration
+    (RD 3). Providers and policies cannot invent categories (ADR-0007)."""
+
+    REPOSITORY_CHARACTERISTIC = "RepositoryCharacteristic"
+    POLICY_PRECONDITION = "PolicyPrecondition"
+    PLATFORM_CAPABILITY_UNAVAILABLE = "PlatformCapabilityUnavailable"
+
+
 class UnknownClassification(StrEnum):
     """Why an Unknown arose, recorded on the causal record; Execution Status derives from it.
 

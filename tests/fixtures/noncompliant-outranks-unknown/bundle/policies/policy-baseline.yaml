@@ -1,0 +1,20 @@
+id: policy.baseline
+version: 1
+purpose: A NonCompliant requirement alongside an Unknown (unregistered strategy) one — NonCompliant outranks Unknown.
+requirements:
+  - id: req.secret-scanning
+    strategy:
+      identifier: PredicateEvaluation
+      version: 1
+    predicate:
+      equals:
+        setting: secret_scanning
+        value: enabled
+  - id: req.unknown-strategy
+    strategy:
+      identifier: NoSuchStrategy
+      version: 1
+    predicate:
+      equals:
+        setting: secret_scanning
+        value: enabled

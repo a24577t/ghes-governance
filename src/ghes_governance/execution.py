@@ -32,6 +32,7 @@ from .evaluation import (
     AuthorityConflict,
     AuthorityUndeterminable,
     evaluate_policy,
+    explanatory_requirement_outcomes,
     select_authoritative_binding,
 )
 from .model import (
@@ -145,13 +146,9 @@ def _authority_conflict_finding(
                 "policy_version": binding.get("policy_version"),
                 "scope": binding.get("scope"),
                 "requirement_ids": requirement_ids,
-                "explanatory_requirements": [
-                    {
-                        "requirement_id": f["requirement_id"],
-                        "requirement_outcome": f["requirement_outcome"],
-                    }
-                    for f in explanatory
-                ],
+                # Evaluation owns which findings are evaluated outcomes and how NotApplicable is
+                # represented; execution only assembles the projection it returns.
+                "explanatory_requirements": explanatory_requirement_outcomes(explanatory),
             }
         )
     return {
