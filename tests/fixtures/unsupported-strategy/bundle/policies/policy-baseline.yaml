@@ -1,0 +1,12 @@
+id: policy.baseline
+version: 1
+purpose: Exercises an unregistered evaluation strategy identifier (AC 6).
+requirements:
+  - id: req.unknown-strategy
+    strategy:
+      identifier: NoSuchStrategy
+      version: 1
+    predicate:
+      equals:
+        setting: secret_scanning
+        value: enabled

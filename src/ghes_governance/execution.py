@@ -628,6 +628,9 @@ def _execute_governed(
                     _policy_for_binding(versions, _binding, policy_id), repo
                 )
                 findings.extend(evaluation["findings"])
+                # Assemble evaluation-produced governance-configuration findings (AC 6 unsupported
+                # strategy) into execution evidence; evaluation remains their semantic owner.
+                governance_findings.extend(evaluation["governance_findings"])
                 results.append(
                     {
                         "policy_id": policy_id,
@@ -637,6 +640,10 @@ def _execute_governed(
                     }
                 )
                 evaluated += 1
+                # Each requirement-level Unknown (a GovernanceResult from an unsupported strategy)
+                # is the causal record, counted once even though both Policy Outcome and Coverage
+                # State inherit Unknown from it; it never degrades Execution Status (spec §141).
+                unknown += sum(1 for f in evaluation["findings"] if "unknown_classification" in f)
 
     # Execution Status derives from the Unknown Classification recorded on the causal
     # policy-result evidence: only IncompleteObservation Unknowns are observation gaps.
