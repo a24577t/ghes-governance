@@ -7,7 +7,7 @@
 | Date | 2026-07-14 |
 | Derived from | The original Vertical Slice 1 specification draft (2026-07-14), re-scoped by the same-day scope review |
 | Governs | The full architecture-validation phase (Phase 2) as a sequence of implementation slices |
-| Authoritative architecture | Architecture Baseline v1 (`.ai/architecture/architecture-baseline-v1.md`), Architecture Version 1.0.2, ADRs 0001–0014 |
+| Authoritative architecture | Architecture Baseline v1 (`.ai/architecture/architecture-baseline-v1.md`), Architecture Version 1.0.3, ADRs 0001–0015 |
 
 **This document must never be labeled `ready-for-agent` or implemented from directly.** It is the phase-level map: the consolidated definition of what the POC phase demonstrates (the union of the ADR "first vertical slice" / "POC boundary" clauses), decomposed into sequenced slices. The only implementable artifact for the first increment is the separate specification `vertical-slice-1-observe-mode-tracer.md`.
 

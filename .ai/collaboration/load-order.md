@@ -33,7 +33,7 @@ Do not load an artifact merely because it is useful. Load the required chain eve
 - this manifest → the collaboration contract → operator-guide **S1** → session-bootstrap.
 
 **Conditional — load when the situation applies:**
-- *Resuming in-flight work* — the Repository Continuity Artifact ([`../working/repository-continuity.md`](../working/repository-continuity.md)) is read *by* session-bootstrap as subordinate context; no separate load.
+- *Resuming in-flight work* — the Repository Continuity Artifact (produced by [`create-repository-continuity.md`](../prompts/methodology/create-repository-continuity.md) when a session ends with uncommitted in-flight work) is read *by* session-bootstrap as subordinate context; no separate load.
 - *Acting as reviewer or quality gate* — [`../prompts/methodology/review-discipline.md`](../prompts/methodology/review-discipline.md): the authoritative review methodology — repository artifacts (PR diff / changed files) as primary review evidence, and finding classification.
 - *Running a phase / quality gate* — [`../prompts/methodology/phase-gate-review.md`](../prompts/methodology/phase-gate-review.md).
 - *Entering implementation (work-item execution)* — load the methodology governing implementation work (currently the [Decision-Gated Implementation Lifecycle](../methodology/decision-gated-implementation-lifecycle.md)).
